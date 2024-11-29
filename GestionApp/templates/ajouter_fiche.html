@@ -1,0 +1,183 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% load custom_tags %}
+{% block title %}Ajouter une fiche de paie{% endblock %}
+
+{% block content %}
+
+<body>
+    <div class="flex justify-center items-center">
+        <div class="border-white border-4 border-opacity-50 rounded-md max-w-xl mt-20 grow p-1 shadow-lg bg-zinc-700">
+            <h1 class="text-center font-bold text-2xl text-white">Ajouter une fiche de paie</h1>
+
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <!-- Champ Employé -->
+                <div class="mb-4">
+                    <label for="employe" class="block text-white font-bold mb-2 mt-7">Employé</label>
+                    
+                    <div class="flex items-center">
+                    {{ form.employe }}
+                    <button type="button" class="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded lock-btn" 
+                        data-field-id="id_employe" title="Lock/Unlock">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+                          </svg>
+                    </button>
+                    </div>
+                    <!-- Champ caché pour l'état de verrouillage -->
+                    <input type="hidden" name="lock_employe" id="lock_id_employe" value="unlocked">
+                    <!-- {{ form.employe }} -->
+                    {% if form.employe.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.employe.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+
+                <!-- Champ Fiche de paie -->
+                <div class="mb-4">
+                    <label for="fiche_paie" class="block text-white font-bold mb-2">Fichier de Paie</label>
+                    
+                    <div class="flex items-center">
+                    {{ form.fiche_paie }}
+
+                    <button type="button" class="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded lock-btn" 
+                        data-field-id="id_fiche_paie" title="Lock/Unlock">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+                          </svg>
+                    </button>
+                    </div>
+                    <!-- Champ caché pour l'état de verrouillage -->
+                    <input type="hidden" name="lock_fiche_paie" id="lock_id_fiche_paie" value="unlocked">
+
+                    {% if form.fiche_paie.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.fiche_paie.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Champ Montant -->
+                <div class="mb-4">
+                    <label for="Montant" class="block text-white font-bold mb-2 ">Montant</label>
+                    <div class="flex items-center">
+                    {{ form.Montant }}
+                    <button type="button" class="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded lock-btn" 
+                        data-field-id="id_Montant" title="Lock/Unlock">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+                          </svg>
+                    </button>
+                    </div>
+                    <!-- Champ caché pour l'état de verrouillage -->
+                    <input type="hidden" name="lock_Montant" id="lock_id_Montant" value="unlocked">
+
+                    {% if form.Montant.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.Montant.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Champ Libellé -->
+                <div class="mb-4">
+                    <label for="Libelle" class="block text-white font-bold mb-2">Libellé</label>
+                    <!-- {{ form.Libelle }} -->
+                    <div class="flex items-center">
+                        <textarea id="id_Libelle" name="Libelle" placeholder="Entrez le libellé" 
+                            class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ form.Libelle.value|default:'' }}</textarea>
+                        <!-- <button type="button" class="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded lock-btn" 
+                            data-field-id="id_Libelle" title="Lock/Unlock">
+                            🔓
+                        </button> -->
+
+                        <button type="button" class="ml-2 px-3 py-1 bg-gray-200 text-gray-800 rounded lock-btn" data-field-id="id_Libelle" title="Lock/Unlock">
+                            <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />                  
+                            </svg> -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+                              </svg>
+                              
+                              
+                            
+                          </button>
+
+                    </div>
+
+                    <!-- Champ caché pour l'état de verrouillage -->
+                    <input type="hidden" name="lock_Libelle" id="lock_id_Libelle" value="unlocked">
+
+                    {% if form.Libelle.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.Libelle.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Bouton d'ajout -->
+                <div class="text-center">
+                    <button type="submit" class="text-lg bg-green-700 hover:bg-green-600 rounded-lg py-3 px-3 text-white mb-2">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notifications de succès -->
+    <div>
+        {% if messages %}
+    <div class="flex justify-center items-center mt-4">
+        {% for message in messages %}
+            <div id="notification" role="alert" class="rounded-xl border border-white {% if message.tags == 'success' %}bg-green-200 text-green-600{% elif message.tags == 'warning' %}bg-yellow-200 text-yellow-600{% else %}bg-red-200 text-red-600{% endif %} p-4 max-w-xl" style="transition: opacity 1s ease-out;">
+                <div class="flex items-start gap-4">
+                    <span class="{% if message.tags == 'success' %}text-green-600{% elif message.tags == 'warning' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{% if message.tags == 'success' %}M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z{% elif message.tags == 'warning' %}M12 5v14m-7-7h14{% else %}M6 18L18 6M6 6l12 12{% endif %}" />
+                        </svg>
+                    </span>
+                    <div class="flex-1">
+                        <strong class="block font-medium {% if message.tags == 'success' %}text-green-700{% elif message.tags == 'warning' %}text-yellow-700{% else %}text-red-700{% endif %}">{{ message.tags|capfirst }}</strong>
+                        <p class="mt-1 text-sm {% if message.tags == 'success' %}text-green-600{% elif message.tags == 'warning' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            <!-- Utilisation de nl2br pour les retours à la ligne -->
+                            {{ message|linebreaks }}
+                        </p>
+                    </div>
+                    <button onclick="closeNotification()" class="text-gray-500 transition hover:text-gray-600">
+                        <span class="sr-only">Dismiss popup</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Ajouter Select2 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    
+    <script src="{% static 'js/locksystem.js' %}"></script>
+    <script src="{% static 'js/selectscript.js' %}"></script>
+    <script src="{% static 'js/alertmanagement.js' %}"></script>
+</body>
+
+{% endblock %}

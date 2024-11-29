@@ -1,0 +1,66 @@
+
+
+
+{% extends 'navbar.html' %}
+{% load static %}
+{% block title %}Modifier l'employé{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center">
+    <div class="border-white border-4 border-opacity-50 rounded-md max-w-4xl mt-20 grow p-1 shadow-lg bg-zinc-700">
+        <h1 class="text-center font-bold text-2xl text-white">Modifier l'employé</h1>
+        <form method="post">
+            {% csrf_token %}
+            <!-- Champ pour le RIB -->
+            <div class="my-4">
+                <label for="Rib_Employe" class="text-white">RIB :</label>
+                <input type="text" id="Rib_Employe" name="Rib_Employe" required value="{{ employe.Rib_Employe }}" 
+                       placeholder="Entrez exactement 20 chiffres"
+                       class="bg-gray-300 text-black w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       {% if form.Rib_Employe.errors %}
+                       <ul class="text-red-500 mt-1 list-disc list-inside">
+                       {% for error in form.Rib_Employe.errors %}
+                           <li>{{ error }}</li>
+                       {% endfor %}
+                   </ul>
+                       {% endif %}
+            </div>
+
+            <!-- Champ pour le nom complet -->
+            <div class="my-4">
+                <label for="Fullname" class="text-white">Nom complet :</label>
+                <input type="text" id="Fullname" name="Fullname" required value="{{ employe.Fullname }}" 
+                    placeholder="Entrez un nom valide"
+                       class="bg-gray-300 text-black w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% if form.Fullname.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.Fullname.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Champ pour l'adresse -->
+            <div class="my-4">
+                <label for="Address" class="text-white">Adresse :</label>
+                <input type="text" id="Address" name="Address" required value="{{ employe.Address }}" 
+                       placeholder="Entrez une adresse d'au moins 5 caractères"
+                       class="bg-gray-300 text-black w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" >
+                {% if form.Address.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.Address.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Bouton d'enregistrement -->
+            <button type="submit" class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                Enregistrer
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

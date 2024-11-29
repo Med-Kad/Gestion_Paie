@@ -1,0 +1,84 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block title %}Ajouter un donneur d'ordre{% endblock %}
+
+{% block content %}
+
+<body>
+    <div class="flex justify-center items-center">
+        <div class="border-white border-4 border-opacity-50 rounded-md max-w-xl mt-20 grow p-1 shadow-lg bg-zinc-700">
+            <h1 class="text-center font-bold text-2xl text-white">Informations du donneur d'ordre</h1>
+        
+            <form action="{% url 'enregistrer_utilisateur' %}" method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="rib" class="block text-white font-bold mb-2 mt-7">RIB donneur d'ordre</label>
+                    <input type="text" id="rib" name="rib" placeholder="Entrez le RIB" required value="{{ rib }}"
+                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label for="fullname" class="block text-white font-bold mb-2">Nom complet / Raison sociale</label>
+                    <input type="text" id="fullname" name="fullname" placeholder="Entrez le nom ou la raison sociale" required value="{{ fullname }}"
+                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label for="address" class="block text-white font-bold mb-2">Adresse</label>
+                    <input type="text" id="address" name="address" placeholder="Entrez l'adresse" required value="{{ address }}"
+                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label for="bank" class="block text-white font-bold mb-2">Banque</label>
+                    <select id="bank" name="bank" required 
+                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="001" {% if bank == "001" %}selected{% endif %}>CCP:001</option>
+                        <option value="003" {% if bank == "003" %}selected{% endif %}>BADR:003</option>
+                        <option value="004" {% if bank == "004" %}selected{% endif %}>BNA:004</option>
+                    </select>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="text-lg bg-green-700 hover:bg-green-600 rounded-lg py-3 px-3 text-white mb-2">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <!-- Affichage des messages de succès -->
+        {% if messages %}
+        <div class="flex justify-center items-center mt-4">
+            <div id="notification" role="alert" class="rounded-xl border border-white bg-green-200 p-4 max-w-xl" style="transition: opacity 1s ease-out;">
+                <div class="flex items-start gap-4">
+                    <span class="text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </span>
+
+                    <div class="flex-1">
+                        <strong class="block font-medium text-green-700">Succès</strong>
+                        {% for message in messages %}
+                            <p class="mt-1 text-sm text-green-600">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <button onclick="closeNotification()" class="text-gray-500 transition hover:text-gray-600">
+                        <span class="sr-only">Dismiss popup</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <script src="{% static 'js/alertmanagement.js' %}"></script>
+</body>
+
+{% endblock %}

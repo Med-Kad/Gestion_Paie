@@ -1,0 +1,128 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block title %}Modifier un fichier de paie{% endblock %}
+
+{% block content %}
+
+<body>
+    <div class="flex justify-center items-center">
+        <div class="border-white border-4 border-opacity-50 rounded-md max-w-xl mt-20 grow p-1 shadow-lg bg-zinc-700">
+            <h1 class="text-center font-bold text-2xl text-white">Modifier un fichier de paie</h1>
+
+            <form action="" method="POST">
+                {% csrf_token %}
+
+                <!-- Champ Mois -->
+                <div class="mb-4">
+                    <label for="mois" class="block text-white font-bold mb-2">Mois</label>
+                    <select id="mois" name="mois" required
+                            class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1" {% if mois == "01" %}selected{% endif %}>Janvier</option>
+                        <option value="2" {% if mois == "02" %}selected{% endif %}>Février</option>
+                        <option value="3" {% if mois == "03" %}selected{% endif %}>Mars</option>
+                        <option value="4" {% if mois == "04" %}selected{% endif %}>Avril</option>
+                        <option value="5" {% if mois == "05" %}selected{% endif %}>Mai</option>
+                        <option value="6" {% if mois == "06" %}selected{% endif %}>Juin</option>
+                        <option value="7" {% if mois == "07" %}selected{% endif %}>Juillet</option>
+                        <option value="8" {% if mois == "08" %}selected{% endif %}>Août</option>
+                        <option value="9" {% if mois == "09" %}selected{% endif %}>Septembre</option>
+                        <option value="10" {% if mois == "10" %}selected{% endif %}>Octobre</option>
+                        <option value="11" {% if mois == "11" %}selected{% endif %}>Novembre</option>
+                        <option value="12" {% if mois == "12" %}selected{% endif %}>Décembre</option>
+                    </select>
+                </div>
+
+                <!-- Champ Année -->
+                <div class="mb-4">
+                    <label for="annee" class="block text-white font-bold mb-2">Année</label>
+                    <input type="text" id="annee" name="annee" required value="{{ annee }}"
+               class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% if form.annee.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.annee.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Champ Type -->
+                <div class="mb-4">
+                    <label for="type" class="block text-white font-bold mb-2">Type</label>
+                    <select id="type" name="type" required
+                        class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for value, label in form.type.field.choices %}
+                        <option value="{{ value }}" {% if value == form.type.value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.type.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.type.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Champ Description -->
+                <div class="mb-4">
+                    <label for="description" class="block text-white font-bold mb-2">Description</label>
+                    <textarea id="description" name="description" placeholder="Entrez la description" 
+                        class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                    <ul class="text-red-500 mt-1 list-disc list-inside">
+                        {% for error in form.description.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Bouton d'enregistrement -->
+                <div class="text-center">
+                    <button type="submit" class="text-lg bg-green-700 hover:bg-green-600 rounded-lg py-3 px-3 text-white mb-2">Modifier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notifications de succès -->
+    <div>
+        {% if messages %}
+        <div class="flex justify-center items-center mt-4 mb-5">
+            <div id="notification" role="alert" class="rounded-xl border border-white bg-green-200 p-4 max-w-xl" style="transition: opacity 1s ease-out;">
+                <div class="flex items-start gap-4">
+                    <span class="text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+
+                    <div class="flex-1">
+                        <strong class="block font-medium text-green-700">Succès</strong>
+                        {% for message in messages %}
+                        <p class="mt-1 text-sm text-green-600">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <button onclick="closeNotification()" class="text-gray-500 transition hover:text-gray-600">
+                        <span class="sr-only">Dismiss popup</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="{% static 'js/alertmanagement.js' %}"></script>
+</body>
+
+{% endblock %}

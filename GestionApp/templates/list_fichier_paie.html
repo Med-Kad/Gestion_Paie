@@ -1,0 +1,141 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block title %}Liste des Fichiers de Paie{% endblock %}
+
+{% block content %}
+<div>
+    {% if messages %}
+    <div class="flex justify-center items-center mt-4">
+        {% for message in messages %}
+            <div id="notification" role="alert" class="rounded-xl border border-white {% if message.tags == 'success' %}bg-green-200 text-green-600{% elif message.tags == 'warning' %}bg-yellow-200 text-yellow-600{% else %}bg-red-200 text-red-600{% endif %} p-4 max-w-xl" style="transition: opacity 1s ease-out;">
+                <div class="flex items-start gap-4">
+                    <span class="{% if message.tags == 'success' %}text-green-600{% elif message.tags == 'warning' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{% if message.tags == 'success' %}M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z{% elif message.tags == 'warning' %}M12 5v14m-7-7h14{% else %}M6 18L18 6M6 6l12 12{% endif %}" />
+                        </svg>
+                    </span>
+                    <div class="flex-1">
+                        <strong class="block font-medium {% if message.tags == 'success' %}text-green-700{% elif message.tags == 'warning' %}text-yellow-700{% else %}text-red-700{% endif %}">{{ message.tags|capfirst }}</strong>
+                        <p class="mt-1 text-sm {% if message.tags == 'success' %}text-green-600{% elif message.tags == 'warning' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            <!-- Utilisation de nl2br pour les retours à la ligne -->
+                            {{ message|linebreaks }}
+                        </p>
+                    </div>
+                    <button onclick="closeNotification()" class="text-gray-500 transition hover:text-gray-600">
+                        <span class="sr-only">Dismiss popup</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
+
+
+</div>
+
+<div class="flex justify-center items-center">
+    <div class="border-white border-4 border-opacity-50 rounded-md max-w-4xl mt-20 grow p-1 shadow-lg bg-zinc-700 relative">
+        <div class="absolute top-2 right-2 mt-1">
+            <a href="{% url 'ajouter_fichier_paie' %}" class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                Ajouter un fichier de paie
+            </a>
+        </div>
+        
+        <div class="absolute top-2 left-2 mt-1">
+            <!-- Nouveau bouton Importer un fichier TXT -->
+            <form action="{% url 'importer_fichier_txt' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="importFile" class="bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                    Importer un fichier .txt
+                </label>
+                <input type="file" id="importFile" name="fichier_txt" accept=".txt" class="hidden" onchange="this.form.submit()">
+            </form>
+        </div>
+
+        <h1 class="text-center font-bold text-2xl text-white">Liste des Fichiers de Paie</h1>
+        
+        <!-- Barre de recherche -->
+        <div class="flex flex-col gap-4 my-4">
+            <input type="text" id="dateInput" name="date" placeholder="Rechercher par Date (AAAA/MM)" value="{{ date_query }}" 
+                   class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
+            <input type="text" id="descriptionInput" name="description" placeholder="Rechercher par la description du fichier" value="{{ description_query }}" 
+                   class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
+            <select id="typeInput" name="type" class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
+                <option value="" {% if type_query == "" %}selected{% endif %}>Tous les types</option>
+                <option value="BADR" {% if type_query == "BADR" %}selected{% endif %}>BADR</option>
+                <option value="confraires" {% if type_query == "confraires" %}selected{% endif %}>confraires</option>
+            </select>
+        </div>
+
+        <!-- Tableau des fichiers de paie -->
+        <table class="table-auto w-full text-white">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Date  du fichier</th>
+                    <th class="px-4 py-2">Description du fichier</th>
+                    <th class="px-4 py-2">Type</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fichier in page_obj %}
+                <tr class="text-center">
+                    <td class="border px-4 py-2">{{ fichier.date }}</td>
+                    <td class="border px-4 py-2">{{ fichier.description }}</td>
+                    <td class="border px-4 py-2">{{ fichier.type }}</td>
+                    <td class="border px-4 py-2 flex justify-center gap-2">
+                        <!-- Boutons Modifier et Supprimer -->
+                            <button onclick="confirmDownload('{{ fichier.id }}')" class="bg-blue-700 text-white font-bold px-3 py-1 rounded">
+                                Télécharger
+                            </button>
+                        
+                        <a href="{% url 'modifier_fichier_paie' fichier.id %}" class="bg-green-700 hover:bg-green-600 text-white font-bold py-1 px-4 rounded">
+                            Modifier
+                        </a>
+                        <form action="{% url 'delete_fichier' fichier.id %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded">
+                                Supprimer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center py-4">Aucun fichier trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-4">
+            <span class="text-white">Page {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            <div class="pagination flex gap-2 ml-4">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="text-white px-2 border rounded-xl">Début</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="text-white px-2 border rounded-xl">Précédent</a>
+                {% endif %}
+
+                {% for page in page_obj.paginator.page_range %}
+                    <a href="?page={{ page }}" class="{% if page == page_obj.number %}font-bold{% endif %} px-2 py-1 text-white border rounded-xl">{{ page }}</a>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="text-white px-2 border rounded-xl">Suivant</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="text-white px-2 border rounded-xl">Fin</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/filterfichier.js' %}"></script>
+<script src="{% static 'js/alertmanagement.js' %}"></script>
+
+{% endblock %}

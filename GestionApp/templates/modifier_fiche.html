@@ -1,0 +1,117 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block title %}Modifier une fiche de paie{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center">
+    <div class="border-white border-4 border-opacity-50 rounded-md max-w-xl mt-20 grow p-1 shadow-lg bg-zinc-700">
+        <h1 class="text-center font-bold text-2xl text-white">Modifier une fiche de paie</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Champ Employé -->
+            <div class="mb-4">
+                <label for="employe" class="block text-white font-bold mb-2">Employé</label>
+                <div class="flex items-center">
+                    {{ form.employe }}
+                </div>
+                {% if form.employe.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.employe.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Champ Fiche de paie -->
+            <div class="mb-4">
+                <label for="fiche_paie" class="block text-white font-bold mb-2">Fichier de Paie</label>
+                {{ form.fiche_paie }}
+                {% if form.fiche_paie.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.fiche_paie.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Champ Montant -->
+            <div class="mb-4">
+                <label for="Montant" class="block text-white font-bold mb-2">Montant</label>
+                {{ form.Montant }}
+                {% if form.Montant.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.Montant.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Champ Libellé -->
+            <div class="mb-4">
+                <label for="Libelle" class="block text-white font-bold mb-2">Libellé</label>
+                <textarea id="id_Libelle" name="Libelle" class="bg-gray-300 text-black w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ form.Libelle.value|default:'' }}</textarea>
+                {% if form.Libelle.errors %}
+                <ul class="text-red-500 mt-1 list-disc list-inside">
+                    {% for error in form.Libelle.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Bouton d'enregistrement -->
+            <div class="text-center">
+                <button type="submit" class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                    Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notifications -->
+<div>
+    {% if messages %}
+    <div class="flex justify-center items-center mt-4 mb-5">
+        <div id="notification" role="alert" class="rounded-xl border border-white bg-green-200 p-4 max-w-xl" style="transition: opacity 1s ease-out;">
+            <div class="flex items-start gap-4">
+                <span class="text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </span>
+                <div class="flex-1">
+                    <strong class="block font-medium text-green-700">Succès</strong>
+                    {% for message in messages %}
+                    <p class="mt-1 text-sm text-green-600">{{ message }}</p>
+                    {% endfor %}
+                </div>
+                <button onclick="closeNotification()" class="text-gray-500 transition hover:text-gray-600">
+                    <span class="sr-only">Fermer</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Ajouter Select2 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    
+    <script src="{% static 'js/selectscript_modifierfiche.js' %}"></script>
+    <script src="{% static 'js/alertmanagement.js' %}"></script>
+
+{% endblock %}

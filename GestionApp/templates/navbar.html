@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Navbar Page{% endblock %}</title>
+    <link href="{% static 'styles/tailwind.css' %}" rel="stylesheet">
+    
+</head>
+<body class="bg-zinc-800">
+    <!-- <script src="{% static 'js/functions.js' %}"></script> -->
+
+        <!-- Navbar -->
+        <nav class="bg-green-700 p-4 shadow-lg border-2 border-green-500 rounded-lg">
+            <div class="container ml-0 flex justify-between items-center">
+                <div class="flex space-x-4">
+                    <!-- Navbar links -->
+                    <a href="{% url 'enregistrer_utilisateur' %}" class="text-white hover:bg-green-600 px-3 py-2 rounded">Compte</a>
+                    <a href="{% url 'employe_list' %}" class="text-white hover:bg-green-600 px-3 py-2 rounded">Employé</a>
+                    <a href="{% url 'list_fiches' %}" class="text-white hover:bg-green-600 px-3 py-2 rounded">Fiche Paie</a>
+                    <a href="{% url 'list_fichier_paie' %}" class="text-white hover:bg-green-600 px-3 py-2 rounded">Fichier</a>
+                </div>
+            </div>
+        </nav>
+    
+        <!-- Main Content -->
+        {% block content %}
+        <div class="container mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
+            <h2 class="text-center text-2xl font-bold mb-4">Bienvenue dans l'application de gestion</h2>
+            <p class="text-center">Utilisez la barre de navigation pour accéder aux différentes sections.</p>
+        </div>
+        {% endblock %}
+    
+    
+</body>
+</html>

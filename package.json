@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47"
+  },
+  "scripts": {
+    "build-css": "npx tailwindcss -i ./GestionApp/static/styles/static.css -o ./GestionApp/static/styles/tailwind.css --watch"
+}
+}
