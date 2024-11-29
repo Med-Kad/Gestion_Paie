@@ -101,6 +101,9 @@ def ajouter_fichier_paie(request):
     if request.method == 'POST':
         form = FichierPaieForm(request.POST)
         if form.is_valid():
+            if FichierPaie.objects.filter(date=form.cleaned_data['date'],type=form.cleaned_data['type']).exists():
+                messages.error(request, "Ce fichier de paie existe déjà.")
+                return render(request, 'ajouter_fichier_paie.html', {'form': form})
             form.save()
             messages.success(request, "Le fichier de paie a été ajouté avec succès.")
             return redirect('ajouter_fichier_paie')  # Remplacez par la vue ou page souhaitée
@@ -353,11 +356,7 @@ def telecharger_fichier_paie(request, fichier_id):
         
         date = datetime.datetime.now()
         jour = date.strftime("%d").zfill(2)
-        print("jour: ",jour)
         reference=f"{fichier_id}".zfill(3)
-
-        # Récupérer toutes les fiches de paie où le fichier apparaît (selon vos critères)
-        #fiches_associees = FichePaie.objects.filter(employe=fiche.employe)
 
         # Générer le contenu du fichier texte
         contenu = ""
@@ -408,7 +407,6 @@ def formulaire_utilisateur(request):
             json.dump(data, fichier)
         #return JsonResponse({"message": "Données enregistrées avec succès !"})
         messages.success(request, "Données enregistrées avec succès !")
-        print(fichier_utilisateur)
     else:
         # Affichage des données existantes
         try:
@@ -436,7 +434,6 @@ def importer_fichier_txt(request):
         mois = ""
         notice=""
         # Logique pour traiter le contenu du fichier
-        # print(contenu)
         #Traiter le contenu du fichier ligne par ligne
         lignes = contenu.splitlines()
         for ligne in lignes:
@@ -493,9 +490,6 @@ def importer_fichier_txt(request):
             messages.success(request, f"Fichier {fichier.name} importé avec succès.")
             return redirect('list_fichier_paie')  # Redirige vers la liste des fichiers de paie
 
-
-        
-    #messages.error(request, "Veuillez sélectionner un fichier.")
     return redirect('list_fichier_paie')
 
 
