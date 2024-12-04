@@ -7,14 +7,10 @@ from django.core.paginator import Paginator
 from django.core import serializers
 import json
 import datetime
+import re
 
 # Fichier pour stocker les données utilisateur
 fichier_utilisateur = "utilisateur.json"
-
-# Create your views here.
-def firstfct(request):
-    return render(request,"add_employe.html")
-
 
 def Home(request):
     return render(request,"navbar.html")
@@ -100,6 +96,15 @@ def supprimer_employe(request, rib):
 def ajouter_fichier_paie(request):
     if request.method == 'POST':
         form = FichierPaieForm(request.POST)
+        verif_type= None
+        type = form.data['type']
+        mois = form.data['mois'].zfill(2)
+        annee = form.data['annee']
+        date = f"{annee}/{mois}"
+        verif_type= FichierPaie.objects.filter(date=date,type=type).first()
+        if verif_type:
+            messages.error(request, "Un fichier de paie avec ce type et cette date existe déjà.")
+            return render(request, 'ajouter_fichier_paie.html', {'form': form})
         if form.is_valid():
             if FichierPaie.objects.filter(date=form.cleaned_data['date'],type=form.cleaned_data['type']).exists():
                 messages.error(request, "Ce fichier de paie existe déjà.")
@@ -152,13 +157,18 @@ def delete_fichier(request, id):
 
 def modifier_fichier_paie(request, id):
     fichier = get_object_or_404(FichierPaie, id=id)
+    type = fichier.type
     date = fichier.date
     mois = date.split('/')[1]
     annee = date.split('/')[0]
+    verif_type= None
     if request.method == "POST":
         form = FichierPaieForm(request.POST, instance=fichier)
         mois = form.data['mois'].zfill(2)
-        
+        verif_type= FichierPaie.objects.filter(date=date,type=form.data['type']).first()
+        if verif_type and verif_type.id != id:
+            messages.error(request, "Un fichier de paie avec ce type et cette date existe déjà.")
+            return render(request, 'modifier_fichier_paie.html', {'form': form, 'mois':mois,'annee':annee})
         annee = form.data['annee']
         if form.is_valid():
             form.save()
@@ -180,6 +190,7 @@ def ajouter_fiche_paie(request):
         Montant_initial = None
         Libelle_initial = None
         form = FichePaieForm(request.POST)
+
 
         if form.is_valid():
             # Récupération des états de verrouillage
@@ -208,6 +219,7 @@ def ajouter_fiche_paie(request):
             #recuperer lenom de l'employe apartir de son id
             employe = Employe.objects.get(pk=employe_id)
 
+
             fichier_id = form.data['fiche_paie']
             fichier = FichierPaie.objects.get(pk=fichier_id)
 
@@ -215,9 +227,6 @@ def ajouter_fiche_paie(request):
             fiche = FichePaie.objects.filter(employe=employe_id, fiche_paie=fichier_id).first()
 
             if not fiche: 
-            
-                
-
                 # Sauvegarde de la fiche de paie
                 form.save()
                 messages.success(request, "La fiche de paie a été ajoutée avec succès.")
@@ -262,8 +271,19 @@ def search_fichier_paie(request):
 
 def modifier_fiche(request, id):
     fiche = get_object_or_404(FichePaie, id=id)
+    existence = None
     if request.method == "POST":
         form = FichePaieForm(request.POST, instance=fiche)
+        employe = Employe.objects.get(pk=form.data['employe'])
+
+        fichier = FichierPaie.objects.get(pk=form.data['fiche_paie'])
+        # Vérifier si l'employé existe dans les fiche de paie avec employe et fiche de paie
+        fiche = FichePaie.objects.filter(employe=employe, fiche_paie=fichier).first()
+        if fiche and fiche.id != id:
+            messages.error(request, f"L'employe : \" {employe} \" existe deja dans la fiche de paie: \" {fichier} \" ")
+            return render(request, 'modifier_fiche.html', {'form': form, 'fiche': fiche})
+        
+
         if form.is_valid():
             form.save()
             messages.success(request, "La fiche de paie a été modifiée avec succès.")
@@ -373,7 +393,6 @@ def telecharger_fichier_paie(request, fichier_id):
             montant_total=montant_total+int(f.Montant)
             Montant = f.Montant.zfill(15)
             contenu += f"{dixpremiers}1{f.employe.Rib_Employe}    {Fullname}{lengthFullname*' '}{Adresse}{lengthAdresse*' '}{Montant}{Libelle}{lengthLibelle*' '}{80*' '}\n"
-            #contenu += f"Employé: {f.employe}, Montant: {f.Montant}, Libellé: {f.Libelle}\n"
         nb_fiches = str(len(fiches)).zfill(6)
         montant_total=str(montant_total).zfill(16)
         premiere_ligne = f"VIRM{Bank_User}01001{Rib_User}    {Fullname_User}{' '*(50-len(Fullname_User))}{Address_User}{' '*(70-len(Address_User))}{annee}{mois}{jour}{reference}{nb_fiches}{montant_total}{31*' '}\n"
@@ -405,7 +424,7 @@ def formulaire_utilisateur(request):
         # Sauvegarde dans le fichier JSON
         with open(fichier_utilisateur, "w") as fichier:
             json.dump(data, fichier)
-        #return JsonResponse({"message": "Données enregistrées avec succès !"})
+
         messages.success(request, "Données enregistrées avec succès !")
     else:
         # Affichage des données existantes
@@ -433,11 +452,23 @@ def importer_fichier_txt(request):
         annee = ""
         mois = ""
         notice=""
+        i=0
+        invalid=False
+        nonvide=False
+        existedeja=False
         # Logique pour traiter le contenu du fichier
         #Traiter le contenu du fichier ligne par ligne
         lignes = contenu.splitlines()
         for ligne in lignes:
+            invalid=False
+            i+=1
             if len(ligne) == 220:
+                debut = ligne[0:4]
+                if debut != "VIRM":
+                    notice+="La premiere ligne n'est pas valide.\n"
+                    break
+                
+                
                 annee = ligne[156:160]
                 mois = ligne[160:162]
                 banque = ligne[4:7]
@@ -445,6 +476,24 @@ def importer_fichier_txt(request):
                     typeFichier = "BADR"
                 else:
                     typeFichier = "confraires"
+                
+
+                # si annee nest pas un nombre qui contient 4 chiffres ou plus grand que 1950
+                if not annee.isdigit() or len(annee) != 4 or int(annee) < 1950:
+                    notice+="L'année de la premiere ligne n'est pas valide.\n"
+                    break
+
+                # si mois nest pas un nombre qui contient 2 chiffres ou plus grand que 1 et plus petit que 12
+                if not mois.isdigit() or len(mois) != 2 or int(mois) < 1 or int(mois) > 12:
+                    notice+="Le mois de la premiere ligne n'est pas valide.\n"
+                    break
+
+                # si la banque n'est pas valide
+                if not banque.isdigit() or len(banque) != 3:
+                    notice+="La banque du donneur d'ordre n'est pas valide.\n"
+                    break
+
+
                 # Vérifier si la fichier de paie existe déjà
                 fiche_paie = FichierPaie.objects.filter(date=f"{annee}/{mois}",type=typeFichier).first()
                 if not fiche_paie:
@@ -454,42 +503,153 @@ def importer_fichier_txt(request):
                 
                 else:
                     notice+=f"Le fichier pour {fiche_paie.date} avec le type {typeFichier} existe déjà.\n"
+                    existedeja=True
                 
                 continue
             if len(ligne) == 100:
                 break
 
-
+            invalid=False
             rib = ligne[11:31]
             fullname = ligne[35:85].strip()
             address = ligne[85:155].strip()
             montant = ligne[155:170].lstrip('0')
             libelle = ligne[170:240].strip()
+            if not rib.isdigit() or len(rib) != 20:
+                invalid=True
+                notice+=f"Le RIB {rib},"
+            
+            if not re.match(r'^[A-Za-zÀ-ÿ0-9\s]+$', fullname) or len(fullname) > 50:
+                invalid=True
+                notice+=f" Le nom {fullname},"
+            if not re.match(r'^[A-Za-zÀ-ÿ0-9\s]+$', address) or len(address) > 70:
+                invalid=True
+                notice+=f" L'adresse {address},"
+            if not re.match(r'^[0-9]+$', montant) or len(montant) > 15:
+                invalid=True
+                notice+=f" Le montant {montant},"
+            if not re.match(r'^[A-Za-zÀ-ÿ0-9\s]+$', libelle) or len(libelle) > 70:
+                invalid=True
+                notice+=f" Le libelle {libelle},"
+            
+            if invalid:
+                notice+=f" de l'employé {rib} {fullname} de la ligne numero {i} du fichier, n'est pas valide.\n"
+                continue
 
             # Vérifier si l'employé existe déjà
             employe = Employe.objects.filter(Rib_Employe=rib).first()
             if not employe:
                 employe = Employe(Rib_Employe=rib, Fullname=fullname, Address=address)
+                nonvide=True
                 employe.save()
             else:
                 notice+=f"L'employé {employe.Fullname} avec le RIB {employe.Rib_Employe} existe déjà.\n"
+                nonvide=True
             
             # Vérifier si la fiche de paie existe déjà
-            fiche = FichePaie.objects.filter(employe=employe, fiche_paie=fiche_paie, Montant=montant).first()
+            fiche = FichePaie.objects.filter(employe=employe, fiche_paie=fiche_paie).first()
             if not fiche:
                 fiche = FichePaie(employe=employe, fiche_paie=fiche_paie, Montant=montant, Libelle=libelle)
                 fiche.save()
+                nonvide=True
             else:
                 notice+=f"La fiche de paie pour {employe.Fullname} et le mois {fiche_paie.date} existe déjà.\n"
-            
+                nonvide=True
+
+
+        #if nonvide est faux alors supprimer le fichier de paie    
+        if not nonvide and fiche_paie and not existedeja:
+            notice+=f"Le fichier de paie pour le mois {fiche_paie.date} est vide donc il n'a pas été ajouté.\n"
+            fiche_paie.delete()
+
+
         if notice:
 
             messages.warning(request, notice)
             
         else:
-            messages.success(request, f"Fichier {fichier.name} importé avec succès.")
-            return redirect('list_fichier_paie')  # Redirige vers la liste des fichiers de paie
-
+            messages.success(request, f"Fichier {fichier.name} importé sans erreur.")
+            
     return redirect('list_fichier_paie')
 
 
+
+def clone_fichier_paie(request):
+    if request.method == 'POST':
+        # enlevez le champ original_fichier_id du request.POST
+        request_copy = request.POST.copy()
+        request_copy.pop('original_fichier_id')
+        form = FichierPaieForm(request_copy)
+        if form.is_valid():
+            try:
+                original_fichier_id = request.POST.get('original_fichier_id')
+                mois = request.POST.get('mois')
+                mois = mois.zfill(2)
+                annee = request.POST.get('annee')
+                type = request.POST.get('type')
+                description = request.POST.get('description')
+
+            # Récupérer le fichier d'origine
+                original_fichier = get_object_or_404(FichierPaie, id=original_fichier_id)
+
+            # Créer un nouveau fichier
+                new_fichier = FichierPaie.objects.create(
+                    date=f"{annee}/{mois}",
+                    type=type,
+                    description=description
+                )
+
+            # Cloner les fiches de paie associées
+                fiches = FichePaie.objects.filter(fiche_paie=original_fichier)
+                Libelle=f"fiche de paie du {mois} {annee}"
+                for fiche in fiches:
+                    FichePaie.objects.create(
+                        employe=fiche.employe,
+                        fiche_paie=new_fichier,
+                        Montant=fiche.Montant,
+                        Libelle=Libelle
+                    )
+
+                messages.success(request, f"Le fichier de paie {mois}/{annee} a été cloné avec succès.")
+                return redirect('list_fichier_paie')
+            except FichierPaie.DoesNotExist:
+                form.add_error(None, "Le fichier d'origine spécifié est introuvable.")
+        else:
+        
+
+
+            description = request.GET.get('description', '')
+            date_query = request.GET.get('date', '')
+            type_query = request.GET.get('type', '')
+
+            # Filtrage des fichiers de paie
+            fichiers_paie = FichierPaie.objects.all()
+            
+            if description:
+                fichiers_paie = fichiers_paie.filter(description__icontains=description)
+            if date_query:
+                fichiers_paie = fichiers_paie.filter(date__icontains=date_query)
+            if type_query:
+                fichiers_paie = fichiers_paie.filter(type__icontains=type_query)
+            # Pagination
+            paginator = Paginator(fichiers_paie, 10)
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            mois = request.POST.get('mois')
+            description = request.POST.get('description')
+
+
+            context = {
+                'page_obj': page_obj,
+                'description': description,
+                'date_query': date_query,
+                'type_query': type_query,
+                'formpopup': form,
+                'show_popup': True,
+                'mois':mois,
+                'description':description,
+                'original_fichier_id': request.POST.get('original_fichier_id'),
+            }
+
+            return render(request, 'list_fichier_paie.html', context)
+    return redirect('list_fichier_paie')

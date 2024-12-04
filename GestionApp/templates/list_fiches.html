@@ -52,8 +52,6 @@
             class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
             </div>
             <div class="flex justify-center gap-2">
-            <!-- <input type="text" id="typeInput" name="fiche" placeholder="Rechercher par type" value="{{ type_query }}"
-                   class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"> -->
             <input type="text" id="dateInput" name="fiche" placeholder="Rechercher par date" value="{{ date_query }}"
                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
             <input type="text" id="descriptionInput" name="fiche" placeholder="Rechercher par description" value="{{ description_query }}"
@@ -88,21 +86,10 @@
                     <td class="border px-4 py-2">{{ fiche.fiche_paie }}</td>
                     <td class="border px-4 py-2">{{ fiche.Montant }}</td>
                     <td class="border px-4 py-2">{{ fiche.Libelle }}</td>
-                    <!-- <td class="border px-4 py-2 flex justify-center gap-2">
-                        <a href="{% url 'modifier_fiche' fiche.id %}" class="bg-green-700 hover:bg-green-600 text-white font-bold py-1 px-4 rounded">
-                            Modifier
-                        </a>
-                        <form action="{% url 'delete_fiche' fiche.id %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette fiche ?');">
-                            {% csrf_token %}
-                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded">
-                                Supprimer
-                            </button>
-                        </form>
-                    </td> -->
                     <td class="border px-4 py-2">
                         <div class="flex gap-2 w-full justify-center items-center">
                             <a href="{% url 'modifier_fiche' fiche.id %}" 
-                               class="flex-1 bg-green-700 hover:bg-green-600 text-white font-bold py-1 px-4 text-center rounded">
+                               class="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-4 text-center rounded">
                                 Modifier
                             </a>
                             <form action="{% url 'delete_fiche' fiche.id %}" method="post" class="flex-1" 

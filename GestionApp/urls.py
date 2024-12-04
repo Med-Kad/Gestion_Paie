@@ -3,9 +3,8 @@ from .views import *
 
 urlpatterns = [
 
-path('',firstfct,name="test"),
 path('AddEmploye/', Add_Employe, name='Add_Employe'),
-path('navbar/', Home, name='Home'),
+path('', Home, name='Home'),
 path('employe_list/', employe_list, name='employe_list'),
 path('modifier-employe/<str:rib>/', modifier_employe, name='modifier_employe'),
 path('supprimer-employe/<str:rib>/', supprimer_employe, name='supprimer_employe'),
@@ -23,5 +22,6 @@ path('modifier-fiche/<int:id>/', modifier_fiche, name='modifier_fiche'),
 path('telecharger/<int:fichier_id>/', telecharger_fichier_paie, name='telecharger_fichier_paie'),
 path("formulaire/", formulaire_utilisateur, name="enregistrer_utilisateur"),
 path('importer-fichier-txt/', importer_fichier_txt, name='importer_fichier_txt'),
+path('clone_fichier_paie/', clone_fichier_paie, name='clone_fichier_paie'),
 
 ]

@@ -11,23 +11,6 @@ function confirmDownload(fichierId) {
     }
 }
 
-// Disparition progressive des notifications
-// document.addEventListener("DOMContentLoaded", function () {
-//     const notification = document.querySelector('[role="alert"]');
-
-//     if (notification) {
-//         // Délai de 3 secondes avant de commencer la disparition
-//         setTimeout(() => {
-//             notification.style.opacity = "0"; // Définir l'opacité à 0
-//         }, 3000);
-
-//         // Supprimer complètement la notification après 1 seconde supplémentaire (durée de la transition)
-//         setTimeout(() => {
-//             notification.style.display = "none";
-//         }, 4000); // 3 secondes + 1 seconde
-//     }
-// });
-
 document.addEventListener("DOMContentLoaded", function () {
     const notification = document.querySelector('[role="alert"]');
 

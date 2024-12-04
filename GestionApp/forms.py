@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 import re
 import calendar
 from django_select2.forms import *
-from django_select2.forms import Select2Widget, ModelSelect2Widget
 
 class EmployeForm(forms.ModelForm):
     class Meta:
@@ -26,9 +25,6 @@ class EmployeForm(forms.ModelForm):
             # Vérifie le format du RIB
             if not re.match(r'^\d{20}$', rib):
                 errors.setdefault('Rib_Employe', []).append("Le format de RIB est invalide, inserez des chiffres seulement.")
-            # Vérifie l'unicité du RIB
-            # if Employe.objects.filter(Rib_Employe=rib).exists():
-            #     errors.setdefault('Rib_Employe', []).append("Ce RIB est déjà enregistré.")
 
             # Vérifie l'unicité du RIB (uniquement si le formulaire est pour un ajout ou une modification avec un RIB modifié)
             if self.instance and self.instance.Rib_Employe != rib:
@@ -72,8 +68,7 @@ class FichierPaieForm(forms.ModelForm):
     )
 
     annee = forms.CharField(
-        # max_length=4,
-       # validators=[RegexValidator(r'^\d{4}$')],
+
         widget=forms.TextInput(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
     )
 

@@ -82,27 +82,108 @@
                     <th class="px-4 py-2">Actions</th>
                 </tr>
             </thead>
+
+
+                <!-- Pop-up -->
+            <div id="clonePopup" class="fixed inset-0 flex items-center justify-center bg-black  bg-opacity-50 {% if not show_popup %}hidden{% endif %}">
+                <div class=" border-white border-4 bg-zinc-700 p-6 rounded-lg shadow-lg max-w-lg w-full">
+                    <h2 class="text-xl text-white font-bold mb-4">Cloner un fichier de paie</h2>
+                    <form id="cloneForm" method="POST" action="{% url 'clone_fichier_paie' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="originalFichierId" name="original_fichier_id" value="{{ original_fichier_id }}">
+                        <!-- Mois -->
+                        <div class="mb-4">
+                            <label for="mois" class="block text-white font-bold mb-2">Mois</label>
+                            <select id="mois" name="mois" placeholder="Choisissez le mois" required 
+                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1" {% if mois == "1" %}selected{% endif %}>Janvier</option>  
+                        <option value="2" {% if mois == "2" %}selected{% endif %}>Fevrier</option>
+                        <option value="3" {% if mois == "3" %}selected{% endif %}>Mars</option>
+                        <option value="4" {% if mois == "4" %}selected{% endif %}>Avril</option>
+                        <option value="5" {% if mois == "5" %}selected{% endif %}>Mai</option>
+                        <option value="6" {% if mois == "6" %}selected{% endif %}>Juin</option>
+                        <option value="7" {% if mois == "7" %}selected{% endif %}>Juillet</option>
+                        <option value="8" {% if mois == "8" %}selected{% endif %}>Aout</option>
+                        <option value="9" {% if mois == "9" %}selected{% endif %}>Septembre</option>
+                        <option value="10"{% if mois == "10" %}selected{% endif %}>Octobre</option>
+                        <option value="11"{% if mois == "11" %}selected{% endif %} >Novembre</option>
+                        <option value="12"{% if mois == "12" %}selected{% endif %} >Decembre</option>
+                    </select>
+                        </div>
+                        <!-- Année -->
+                        <div class="mb-4">
+                            <label for="annee" class="block text-white font-bold mb-2">Année</label>
+                            <input type="text" id="annee" name="annee" placeholder="AAAA" value="{{formpopup.annee.value|default:''}}" required class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% if formpopup.annee.errors %}
+                            <ul class="text-red-500 mt-1 list-disc list-inside">
+                                {% for error in formpopup.annee.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+
+                        <!-- Type -->
+                        <div class="mb-4">
+                            <label for="type" class="block text-white font-bold mb-2">Type</label>
+                            <!-- <input type="text" id="type" name="type" placeholder="Inserez le type du fichier" required class="w-full p-2 border rounded"> -->
+                            <select id="type" name="type" placeholder="Inserez le type du fichier" required class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="BADR" {% if formpopup.type.value == "BADR" %}selected{% endif %}>BADR</option>
+                                <option value="confraires" {% if formpopup.type.value == "confraires" %}selected{% endif %}>confraires</option>
+                            </select>
+                        </div>
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="block text-white font-bold mb-2">Description</label>
+                            <textarea id="description" name="description"  required class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> {{ formpopup.description.value|default:'' }} </textarea>
+                            {% if formpopup.description.errors %}
+                            <ul class="text-red-500 mt-1 list-disc list-inside">
+                                {% for error in formpopup.description.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        
+                        </div>
+                        <!-- Boutons -->
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" onclick="closePopup()" class="bg-gray-500 text-white py-2 px-4 rounded">Annuler</button>
+                            <button type="submit" class="bg-blue-700 text-white py-2 px-4 rounded">Cloner</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <tbody>
                 {% for fichier in page_obj %}
                 <tr class="text-center">
                     <td class="border px-4 py-2">{{ fichier.date }}</td>
                     <td class="border px-4 py-2">{{ fichier.description }}</td>
                     <td class="border px-4 py-2">{{ fichier.type }}</td>
-                    <td class="border px-4 py-2 flex justify-center gap-2">
+                    <!-- <td class="border px-4 py-2 flex justify-center gap-2"> -->
+                        <td class="border px-4 py-2">
+                            <div class="flex gap-2 w-full justify-center items-center">
+                        
+                        <!-- Bouton "Cloner" -->
+                            <button onclick="openPopup('{{ fichier.id }}')" class="bg-cyan-700 hover:bg-cyan-600 rounded py-1 px-3 text-white font-bold">
+                                Cloner
+                            </button>
+
                         <!-- Boutons Modifier et Supprimer -->
-                            <button onclick="confirmDownload('{{ fichier.id }}')" class="bg-blue-700 text-white font-bold px-3 py-1 rounded">
+                            <button onclick="confirmDownload('{{ fichier.id }}')" class="bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 rounded">
                                 Télécharger
                             </button>
                         
-                        <a href="{% url 'modifier_fichier_paie' fichier.id %}" class="bg-green-700 hover:bg-green-600 text-white font-bold py-1 px-4 rounded">
+                        <a href="{% url 'modifier_fichier_paie' fichier.id %}" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">
                             Modifier
                         </a>
                         <form action="{% url 'delete_fichier' fichier.id %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">
                             {% csrf_token %}
-                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded">
+                            <button type="submit" class="bg-red-700 hover:bg-red-600 text-white font-bold py-1 px-3 rounded">
                                 Supprimer
                             </button>
                         </form>
+                    </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -112,6 +193,8 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        
 
         <!-- Pagination -->
         <div class="flex justify-center mt-4">
@@ -137,5 +220,7 @@
 
 <script src="{% static 'js/filterfichier.js' %}"></script>
 <script src="{% static 'js/alertmanagement.js' %}"></script>
+<script src="{% static 'js/popup.js' %}"></script>
+
 
 {% endblock %}
