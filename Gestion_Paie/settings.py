@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-6mo)m2an!u!u)&4wwftno!5xz@4pbnncc^q__xk561%y63e(%_"
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
 
 
 # Application definition
@@ -79,9 +81,13 @@ WSGI_APPLICATION = "Gestion_Paie.wsgi.application"
 
 
 DATABASES = {
-    "default": {
-        "ENGINE": "djongo",
-        "NAME": "GestionPaie",
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': config('MONGO_NAME'),
+        'CLIENT': {
+            'host': config('MONGO_HOST'),
+            'port': int(config('MONGO_PORT')),
+        }
     }
 }
 
@@ -125,6 +131,9 @@ STATICFILES_DIRS= [
     os.path.join(BASE_DIR,"GestionApp","static")
     
     ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

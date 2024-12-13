@@ -246,7 +246,7 @@ def ajouter_fiche_paie(request):
             else:
                 # ajouter un message dans le formulaire
                 messages.error(request, f"L'employe : \" {employe} \" existe deja dans la fiche de paie: \" {fichier} \" ")
-
+        
 
     else:
         # Requête GET : initialiser un formulaire vide
@@ -495,15 +495,24 @@ def importer_fichier_txt(request):
 
 
                 # Vérifier si la fichier de paie existe déjà
-                fiche_paie = FichierPaie.objects.filter(date=f"{annee}/{mois}",type=typeFichier).first()
+                fiche_paie = FichierPaie.objects.filter(date=f"{annee}/{mois}", type=typeFichier).first()
                 if not fiche_paie:
-                    
-                    fiche_paie = FichierPaie(date=f"{annee}/{mois}",type=typeFichier ,description=f"Fiche de paie {mois} {annee}")
-                    fiche_paie.save()
-                
+                    try:
+                        fiche_paie = FichierPaie(
+                            date=f"{annee}/{mois}",
+                            type=typeFichier,
+                            description=f"Fiche de paie {mois} {annee}"
+                        )
+                        fiche_paie.save()
+                        if not fiche_paie.id:
+                            raise ValueError("L'enregistrement de FichierPaie a échoué.")
+                    except Exception as e:
+                        notice += f"Erreur lors de la création du fichier de paie : {e}\n"
+                        invalid = True
+                        break
                 else:
-                    notice+=f"Le fichier pour {fiche_paie.date} avec le type {typeFichier} existe déjà.\n"
-                    existedeja=True
+                    notice += f"Le fichier pour {fiche_paie.date} avec le type {typeFichier} existe déjà.\n"
+                    existedeja = True
                 
                 continue
             if len(ligne) == 100:

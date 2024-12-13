@@ -187,7 +187,7 @@ class FichePaieForm(forms.ModelForm):
         if montant:
             if not re.match(r'^[0-9]*$', montant):
                 errors.setdefault('Montant', []).append("Le montant est invalide, il doit contenir des chiffres seulement.")
-            if int(montant) >= 100000000 :
+            elif int(montant) >= 100000000 :
                 errors.setdefault('Montant', []).append("Le montant ne doit depasser 100000000.")
         # Validation pour Libelle
         libelle = cleaned_data.get('Libelle')

@@ -1,0 +1,81 @@
+# services:
+#   django:
+#     build:
+#       context: .
+#       target: django
+#     container_name: django
+#     environment:
+#       - MONGO_HOST=mongodb
+#       - MONGO_PORT=27017
+#     depends_on:
+#       - mongodb
+#     ports:
+#       - "8000:8000"
+
+#   node:
+#     build:
+#       context: .
+#       target: node
+#     container_name: node-builder
+#     command: ["npm", "run", "build-css"]
+
+#   nginx:
+#     build:
+#       context: .
+#       target: production
+#     container_name: nginx
+#     depends_on:
+#       - django
+#       - node
+#     ports:
+#       - "80:80"
+
+#   mongodb:
+#     image: mongo:6.0
+#     container_name: mongodb
+#     volumes:
+#       - mongo_data:/data/db
+#     ports:
+#       - "27017:27017"
+
+# volumes:
+#   mongo_data:
+
+
+# docker-compose.yml
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django
+    working_dir: /app
+    command: ./start.sh
+    depends_on:
+      - mongodb
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - django
+
+volumes:
+  mongo_data:

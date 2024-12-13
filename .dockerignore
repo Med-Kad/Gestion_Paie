@@ -1,0 +1,13 @@
+# Exclure les fichiers temporaires ou inutiles
+# Ne pas exclure requirements.txt
+!requirements.txt
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+node_modules/
+*.db
+*.sqlite
+*.tar
+# Dockerfile*
+# docker-compose.yml
