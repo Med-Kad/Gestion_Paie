@@ -45,11 +45,14 @@ class Employe(models.Model):
 
 class FichierPaie(models.Model):
     TYPE_CHOICES = [
-        ('confraires', 'confraires'),
+        ('confraires_BADR', 'confraires_BADR'),
         ('BADR', 'BADR'),
+        ('CPA', 'CPA'),
+        ('confraires_CPA', 'confraires_CPA'),
+
     ]
     date = models.CharField(max_length=7, validators=[RegexValidator(r'^\d{4}/\d{2}$')])
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES,default='BADR')
+    type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     description = models.CharField(max_length=1000,blank=True,validators=[RegexValidator(r'^[0-9a-zA-Z ]*$')])
 
     def __str__(self):

@@ -3,6 +3,18 @@ function openPopup(fichierId) {
     localStorage.setItem("previousUrl", window.location.href);
 
     document.getElementById("originalFichierId").value = fichierId;
+    // if (fichierType == "BADR" || fichierType == "confraires_BADR") {
+    //     document.getElementById("firstOption").value = "BADR";
+    //     document.getElementById("firstOption").InnerHTML = "BADR";
+    //     document.getElementById("secondOption").value = "confraires_BADR";
+    //     document.getElementById("secondOption").InnerHTML = "Confraires BADR";
+        
+    // }else if (fichierType == "CPA" || fichierType == "confraires_CPA") {
+    //     document.getElementById("firstOption").value = "CPA";
+    //     document.getElementById("firstOption").InnerHTML = "CPA";
+    //     document.getElementById("firstOption").value = "confraires_CPA";
+    //     document.getElementById("secondOption").InnerHTML = "Confraires CPA";
+    // }
     document.getElementById("clonePopup").classList.remove("hidden");
 }
 

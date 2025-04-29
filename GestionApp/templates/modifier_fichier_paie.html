@@ -11,7 +11,7 @@
 
             <form action="" method="POST">
                 {% csrf_token %}
-
+                <input type="hidden" id="previousUrl" name="previousUrl">
                 <!-- Champ Mois -->
                 <div class="mb-4">
                     <label for="mois" class="block text-white font-bold mb-2">Mois</label>
@@ -121,6 +121,7 @@
     </div>
 
     <script src="{% static 'js/alertmanagement.js' %}"></script>
+    <script src="{% static 'js/previous_url.js' %}"></script>
 </body>
 
 {% endblock %}

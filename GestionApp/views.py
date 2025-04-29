@@ -68,6 +68,7 @@ def modifier_employe(request, rib):
     if request.method == 'POST':
         # Associer les données POST au formulaire existant
         form = EmployeForm(request.POST, instance=employe)
+        previous_url = request.POST.get('previousUrl', 'employe_list')  # Utilisation de la redirection précédente
         if form.is_valid():  # Valide les données
             # Vérification supplémentaire pour s'assurer que le RIB est unique si modifié
             new_rib = form.cleaned_data['Rib_Employe']
@@ -76,7 +77,7 @@ def modifier_employe(request, rib):
             else:
                 form.save()  # Enregistre les modifications dans la base de données
                 messages.success(request, "L'employé a été modifié avec succès.")
-                return redirect('employe_list')  # Redirige vers la liste des employés
+                return redirect(previous_url)
     else:
         # Pré-remplissage du formulaire avec les données de l'employé
         form = EmployeForm(instance=employe)
@@ -86,16 +87,28 @@ def modifier_employe(request, rib):
 # Vue pour supprimer un employé
 def supprimer_employe(request, rib):
     employe = get_object_or_404(Employe, Rib_Employe=rib)
+    #recuperer la valeur d'un input du form envoyé
     if request.method == 'POST':
+        previous_url = request.POST.get('previousUrl')
+        if not previous_url:  # Si previousUrl n'est pas défini, retourne à la liste des employés
+            previous_url = 'employe_list'
         employe.delete()
         messages.success(request, "L'employé a été supprimé avec succès.")
-        return redirect('employe_list')
+        return redirect(previous_url)
 
 ###################################################   Fichier Paie   ########################################################
 
 def ajouter_fichier_paie(request):
+    
+    try:
+        with open(fichier_utilisateur, "r") as fichier:
+            data = json.load(fichier)
+            bank = data.get("bank", "")
+    except FileNotFoundError:
+        bank = ""
+    
     if request.method == 'POST':
-        form = FichierPaieForm(request.POST)
+        form = FichierPaieForm(request.POST, bank=bank)
         verif_type= None
         type = form.data['type']
         mois = form.data['mois'].zfill(2)
@@ -113,7 +126,7 @@ def ajouter_fichier_paie(request):
             messages.success(request, "Le fichier de paie a été ajouté avec succès.")
             return redirect('ajouter_fichier_paie')  # Remplacez par la vue ou page souhaitée
     else:
-        form = FichierPaieForm()
+        form = FichierPaieForm(bank=bank)
     return render(request, 'ajouter_fichier_paie.html', {'form': form})
 
 
@@ -130,7 +143,13 @@ def fichier_paie_list(request):
     if date_query:
         fichiers_paie = fichiers_paie.filter(date__icontains=date_query)
     if type_query:
-        fichiers_paie = fichiers_paie.filter(type__icontains=type_query)
+        if type_query == "CPA":
+            # Filtrer les fichiers de paie de type exactement CPA
+            fichiers_paie = fichiers_paie.filter(type="CPA")
+        elif type_query == "BADR":
+            fichiers_paie = fichiers_paie.filter(type="BADR")
+        else:
+            fichiers_paie = fichiers_paie.filter(type__icontains=type_query)
     # Pagination
     paginator = Paginator(fichiers_paie, 10)
     page_number = request.GET.get('page')
@@ -151,9 +170,12 @@ def fichier_paie_list(request):
 def delete_fichier(request, id):
     if request.method == "POST":
         fichier = get_object_or_404(FichierPaie, id=id)
+        previous_url = request.POST.get('previousUrl')
+        if not previous_url:  # Si previousUrl n'est pas défini, retourne à la liste des employés
+            previous_url = 'list_fichier_paie'
         fichier.delete()
         messages.success(request, "Le fichier a été supprimé avec succès.")
-    return redirect('list_fichier_paie')
+    return redirect(previous_url)
 
 def modifier_fichier_paie(request, id):
     fichier = get_object_or_404(FichierPaie, id=id)
@@ -164,8 +186,11 @@ def modifier_fichier_paie(request, id):
     verif_type= None
     if request.method == "POST":
         form = FichierPaieForm(request.POST, instance=fichier)
+        previous_url = request.POST.get('previousUrl', 'list_fichier_paie')  # Utilisation de la redirection précédente
+        new_date= form.data['annee'] + '/' + form.data['mois'].zfill(2)
         mois = form.data['mois'].zfill(2)
-        verif_type= FichierPaie.objects.filter(date=date,type=form.data['type']).first()
+        verif_type= FichierPaie.objects.filter(date=new_date,type=form.data['type']).first()
+
         if verif_type and verif_type.id != id:
             messages.error(request, "Un fichier de paie avec ce type et cette date existe déjà.")
             return render(request, 'modifier_fichier_paie.html', {'form': form, 'mois':mois,'annee':annee})
@@ -173,7 +198,7 @@ def modifier_fichier_paie(request, id):
         if form.is_valid():
             form.save()
             messages.success(request, "Le fichier de paie a été modifié avec succès.")
-            return redirect('list_fichier_paie')  # Remplacez par le nom de votre page de liste
+            return redirect(previous_url)  # Remplacez par le nom de votre page de liste
         
     else:
         form = FichierPaieForm(instance=fichier)
@@ -218,13 +243,37 @@ def ajouter_fiche_paie(request):
             employe_id = form.data['employe']
             #recuperer lenom de l'employe apartir de son id
             employe = Employe.objects.get(pk=employe_id)
-
-
+            #recuperer la banque de l'employé
+            banque = employe.Rib_Employe[0:3]
+            print(banque)
             fichier_id = form.data['fiche_paie']
             fichier = FichierPaie.objects.get(pk=fichier_id)
+            #recuperer le type de fichier
+            type_fichier = fichier.type
+            print(type_fichier)
 
             # Vérifier si l'employé existe dans les fiche de paie avec employe et fiche de paie
             fiche = FichePaie.objects.filter(employe=employe_id, fiche_paie=fichier_id).first()
+
+            # verifier si l'employé peut appartenir a ce fichier
+            if type_fichier == "BADR":
+                if banque != "003":
+                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la BADR.")
+                    return render(request, 'ajouter_fiche.html', {'form': form})
+            elif type_fichier == "confraires_BADR":
+                if banque == "003":
+                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la BADR.")    
+                    return render(request, 'ajouter_fiche.html', {'form': form})
+            elif type_fichier == "CPA":
+                if banque != "004":
+                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA.")
+                    return render(request, 'ajouter_fiche.html', {'form': form})
+            elif type_fichier == "confraires_CPA":
+                print("confraires_CPA")
+                if banque == "004":
+                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA.")
+                    return render(request, 'ajouter_fiche.html', {'form': form})
+
 
             if not fiche: 
                 # Sauvegarde de la fiche de paie
@@ -272,6 +321,7 @@ def search_fichier_paie(request):
 def modifier_fiche(request, id):
     fiche = get_object_or_404(FichePaie, id=id)
     existence = None
+    previous_url = request.POST.get('previousUrl', 'list_fiches')  # Utilisation de la redirection précédente
     if request.method == "POST":
         form = FichePaieForm(request.POST, instance=fiche)
         employe = Employe.objects.get(pk=form.data['employe'])
@@ -287,7 +337,7 @@ def modifier_fiche(request, id):
         if form.is_valid():
             form.save()
             messages.success(request, "La fiche de paie a été modifiée avec succès.")
-            return redirect('list_fiches')  # Rediriger vers la liste des fiches de paie
+            return redirect(previous_url)  # Rediriger vers la liste des fiches de paie
     else:
         form = FichePaieForm(instance=fiche)
 
@@ -297,9 +347,12 @@ def modifier_fiche(request, id):
 def delete_fiche(request, id):
     if request.method == "POST":
         fiche = get_object_or_404(FichePaie, id=id)
+        previous_url = request.POST.get('previousUrl')
+        if not previous_url:  # Si previousUrl n'est pas défini, retourne à la liste des employés
+            previous_url = 'list_fiches'
         fiche.delete()
         messages.success(request, "La fiche de paie a été supprimée avec succès.")
-    return redirect('list_fiches')  # Rediriger vers la liste des fiches de paie
+    return redirect(previous_url)  # Rediriger vers la liste des fiches de paie
 
 
 def list_fiches(request):
@@ -351,7 +404,123 @@ def list_fiches(request):
 
 
 def telecharger_fichier_paie(request, fichier_id):
+    fichier= FichierPaie.objects.get(id=fichier_id)
+    valider_fichier,message = Valider_fichier(fichier_id)
+    if not valider_fichier:
+        messages.error(request, message)
+        return redirect('list_fichier_paie')
+
+    if fichier.type=="BADR" or fichier.type=="confraires_BADR": 
+        return telecharger_fichier_paie_BADR(request, fichier_id)
+    elif fichier.type=="CPA" or fichier.type=="confraires_CPA":
+        return telecharger_fichier_paie_CPA(request, fichier_id)
     
+ ############################################################
+    
+
+def Valider_fichier(fichier_id):
+    fichier= FichierPaie.objects.get(id=fichier_id)
+    type_fichier = fichier.type
+    fiches = FichePaie.objects.filter(fiche_paie=fichier_id)
+    validite_fichier = True
+    notice=""
+    for f in fiches:
+        employe = f.employe
+        rib = employe.Rib_Employe
+        banque = rib[0:3]
+        if type_fichier == "BADR":
+            if banque != "003":
+                validite_fichier = False
+                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la BADR. \n"
+                continue
+        elif type_fichier == "confraires_BADR":
+            if banque == "003":
+                validite_fichier = False
+                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la BADR. \n"
+                continue
+        elif type_fichier == "CPA":
+            if banque != "004":
+                validite_fichier = False
+                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA. \n"
+                continue
+        elif type_fichier == "confraires_CPA":
+            if banque == "004":
+                validite_fichier = False
+                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA. \n"
+                continue
+        
+    if notice != "":
+        message = "Le fichier de paie n'est pas valide. \n" +" \n"+ notice
+    else:
+        message = "Le fichier de paie est valide."
+
+    return validite_fichier, message
+
+
+
+
+
+def telecharger_fichier_paie_CPA(request, fichier_id):
+    try:
+            with open(fichier_utilisateur, "r") as fichier:
+                data = json.load(fichier)
+    except FileNotFoundError:
+            data = {}
+
+    try:
+        # Récupérer la fiche de paie correspondante
+        Rib_User = data.get("rib", "")
+        Fullname_User = data.get("fullname", "")
+        Address_User = data.get("address", "")
+        Bank_User = data.get("bank", "")
+        
+        
+        fiches = FichePaie.objects.filter(fiche_paie=fichier_id)
+        fichier= FichierPaie.objects.get(id=fichier_id)
+        mois = fichier.date.split('/')[1]
+        annee = fichier.date.split('/')[0]
+        i=0
+        montant_total=0
+        #recuperer le jour seulement de la date actuelle
+        
+        date = datetime.datetime.now()
+        jour = date.strftime("%d").zfill(2)
+        if fichier_id<1000:
+            reference=f"{fichier_id}".zfill(3)
+        else:
+            reference=f"123"
+
+        # Générer le contenu du fichier texte
+        contenu = ""
+        for f in fiches:
+            i+=1
+            dixpremiers = str(i).zfill(6)+mois+annee[2:]
+            # remplir les champs pour avoir une longueur fixe
+            Fullname = f.employe.Fullname
+            Adresse = f.employe.Address
+            Libelle = f.Libelle
+            lengthFullname = 50 - len(f.employe.Fullname)
+            lengthAdresse = 70 - len(f.employe.Address)
+            lengthLibelle = 70 - len(f.Libelle)
+            montant_total=montant_total+int(f.Montant)
+            Montant = f.Montant.zfill(15)
+            contenu += f"{dixpremiers}1{f.employe.Rib_Employe}    {Fullname}{lengthFullname*' '}{Adresse}{lengthAdresse*' '}{Montant}{Libelle}{lengthLibelle*' '}{80*' '}\n"
+        nb_fiches = str(len(fiches)).zfill(6)
+        montant_total=str(montant_total).zfill(16)
+        premiere_ligne = f"VIRM{Bank_User}01001{Rib_User}    {Fullname_User}{' '*(50-len(Fullname_User))}{Address_User}{' '*(70-len(Address_User))}{annee}{mois}{jour}{reference}{nb_fiches}{montant_total}{31*' '}\n"
+        contenu+=f"FVIR{96*' '}"
+        contenu = premiere_ligne + contenu
+        # Créer une réponse HTTP avec le fichier texte
+        response = HttpResponse(contenu, content_type="text/plain")
+        response["Content-Disposition"] = f"attachment; filename=fiche_paie_{mois}_{annee}__{fichier.type}.txt"
+
+        return response
+
+    except FichePaie.DoesNotExist:
+        return HttpResponse("Fiche de paie introuvable.", status=404)
+
+#############################################################    
+def telecharger_fichier_paie_BADR(request, fichier_id):
     try:
             with open(fichier_utilisateur, "r") as fichier:
                 data = json.load(fichier)
@@ -400,7 +569,7 @@ def telecharger_fichier_paie(request, fichier_id):
         contenu = premiere_ligne + contenu
         # Créer une réponse HTTP avec le fichier texte
         response = HttpResponse(contenu, content_type="text/plain")
-        response["Content-Disposition"] = f"attachment; filename=fiche_paie_{fichier_id}.txt"
+        response["Content-Disposition"] = f"attachment; filename=fiche_paie_{mois}_{annee}__{fichier.type}.txt"
 
         return response
 
@@ -456,9 +625,27 @@ def importer_fichier_txt(request):
         invalid=False
         nonvide=False
         existedeja=False
+        TypeBanqueNVligne =""
+        banque=""
+        try:
+            with open(fichier_utilisateur, "r") as fichier:
+                data = json.load(fichier)
+        except FileNotFoundError:
+            data = {}
+
+        try:
+            # Récupérer la fiche de paie correspondante
+            Rib_User = data.get("rib", "")
+            Fullname_User = data.get("fullname", "")
+            Address_User = data.get("address", "")
+            Bank_User = data.get("bank", "")
+        except FichePaie.DoesNotExist:
+            return HttpResponse("Fiche de paie introuvable.", status=404)
+        
         # Logique pour traiter le contenu du fichier
         #Traiter le contenu du fichier ligne par ligne
         lignes = contenu.splitlines()
+        fiche_paie = None
         for ligne in lignes:
             invalid=False
             i+=1
@@ -471,11 +658,9 @@ def importer_fichier_txt(request):
                 
                 annee = ligne[156:160]
                 mois = ligne[160:162]
-                banque = ligne[4:7]
-                if banque == "003":
-                    typeFichier = "BADR"
-                else:
-                    typeFichier = "confraires"
+                banquePayeur=ligne[4:7]
+                #banque = ligne[4:7]
+                
                 
 
                 # si annee nest pas un nombre qui contient 4 chiffres ou plus grand que 1950
@@ -489,10 +674,31 @@ def importer_fichier_txt(request):
                     break
 
                 # si la banque n'est pas valide
-                if not banque.isdigit() or len(banque) != 3:
+                if not banquePayeur.isdigit() or len(banquePayeur) != 3:
                     notice+="La banque du donneur d'ordre n'est pas valide.\n"
+                    break              
+                continue
+            if len(ligne) == 100:
+                break
+            
+            banque = ligne[11:14]
+            if i==2:
+
+                if banquePayeur=="003":
+                    if banque == "003":
+                        typeFichier = "BADR"
+                    else:
+                        typeFichier = "confraires_BADR"
+                elif banquePayeur=="004":
+                    if banque == "004":
+                        typeFichier = "CPA"
+                    else:
+                        typeFichier = "confraires_CPA"
+                else:
+                    notice+="La banque du donneur d'ordre n'est pas valide. Veuillez inserer un fichier avec un compte donneur d'ordre appartenant a la BADR ou la CPA.\n"
                     break
 
+                # TypeBanqueNVligne=typeFichier
 
                 # Vérifier si la fichier de paie existe déjà
                 fiche_paie = FichierPaie.objects.filter(date=f"{annee}/{mois}", type=typeFichier).first()
@@ -513,10 +719,7 @@ def importer_fichier_txt(request):
                 else:
                     notice += f"Le fichier pour {fiche_paie.date} avec le type {typeFichier} existe déjà.\n"
                     existedeja = True
-                
-                continue
-            if len(ligne) == 100:
-                break
+
 
             invalid=False
             rib = ligne[11:31]
@@ -524,6 +727,32 @@ def importer_fichier_txt(request):
             address = ligne[85:155].strip()
             montant = ligne[155:170].lstrip('0')
             libelle = ligne[170:240].strip()
+            if typeFichier =="BADR":
+                if banque != "003":
+                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" confraires_BADR \" \n"
+                    invalid = True
+                    continue
+            elif typeFichier=="confraires_BADR":
+                if banque == "003":
+                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" BADR \" \n"
+                    invalid = True
+                    continue
+            elif typeFichier=="CPA":
+                if banque != "004":
+                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" confraires_CPA \" \n"
+                    invalid = True
+                    continue
+            elif typeFichier=="confraires_CPA":
+                if banque == "004":
+                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" CPA \" \n"
+                    invalid = True
+                    continue
+
+            # if typeFichier != TypeBanqueNVligne:
+            #     notice += f"Type de fichier invalide. L'employé {fullname} a la ligne: {i} du fichier,n'appartient pas a ce type de fichier.\n"
+            #     invalid = True
+            #     break
+
             if not rib.isdigit() or len(rib) != 20:
                 invalid=True
                 notice+=f"Le RIB {rib},"

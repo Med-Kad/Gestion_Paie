@@ -4,6 +4,15 @@ from django.core.exceptions import ValidationError
 import re
 import calendar
 from django_select2.forms import *
+from django.http import JsonResponse,HttpResponse
+import json
+
+
+MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet',
+          'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+
+# Fichier pour stocker les données utilisateur
+fichier_utilisateur = "utilisateur.json"
 
 class EmployeForm(forms.ModelForm):
     class Meta:
@@ -56,26 +65,117 @@ class EmployeForm(forms.ModelForm):
         return cleaned_data
 
     
-class FichierPaieForm(forms.ModelForm):
+# class FichierPaieForm(forms.ModelForm):
 
+#     class Meta:
+#         model = FichierPaie
+#         fields = ['mois', 'annee', 'type', 'description']
+
+#     mois = forms.ChoiceField(
+#         choices=[(str(i), f"{i}: {MONTHS[i-1]}") for i in range(1, 13)],
+#         widget=forms.Select(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
+#     )
+
+#     annee = forms.CharField(
+
+#         widget=forms.TextInput(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
+#     )
+
+#     try:
+#             with open(fichier_utilisateur, "r") as fichier:
+#                 data = json.load(fichier)
+#     except FileNotFoundError:
+#         print("Fichier introuvable.")
+    
+
+
+#         # Récupérer la fiche de paie correspondante
+#     Rib_User = data.get("rib", "")
+#     Fullname_User = data.get("fullname", "")
+#     Address_User = data.get("address", "")
+#     Bank_User = data.get("bank", "")
+
+#     if Bank_User == "003":
+#         type = forms.ChoiceField(
+#             choices= [
+#                 ('BADR', 'BADR'),
+#                 ('confraires_BADR', 'confraires_BADR'),
+#                 ],
+#             initial='BADR',
+#             widget=forms.Select(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
+#         )
+#     elif Bank_User == "004":
+#         type = forms.ChoiceField(
+#             choices= [
+#                 ('CPA', 'CPA'),
+#                 ('confraires_CPA', 'confraires_CPA'),
+#                 ],
+#             initial='CPA',
+#             widget=forms.Select(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
+#         )
+
+#     description = forms.CharField(
+#         required=False,
+#         max_length=1000,
+#         widget=forms.Textarea(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
+#     )
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         mois = cleaned_data.get('mois')
+#         annee = cleaned_data.get('annee')
+#         description = cleaned_data.get('description')
+#         errors = {}
+        
+#         if annee:
+#             if len(annee) != 4:
+#                 errors.setdefault('annee', []).append("L'année doit contenir 4 chiffres.")
+#             if not re.match(r'^\d{4}$', annee):
+#                 errors.setdefault('annee', []).append("Le format de l'année est invalide, inserez 4 chiffres seulement.")
+#             else:
+#                 if int(annee)<1950:
+#                     errors.setdefault('annee', []).append("L'année doit être supérieure à 1950.")
+
+#         if description:
+#             if len(description) > 50:
+#                 errors.setdefault('description', []).append("La description ne doit pas dépasser 50 caractères.")
+#             if not re.match(r'^[0-9a-zA-Z ]*$', description):
+#                 errors.setdefault('description', []).append("La description est invalide, elle doit contenir des lettres et des chiffres seulement.")
+
+
+#         # Si des erreurs existent, les ajouter à chaque champ correspondant
+#         if errors:
+#             for field, field_errors in errors.items():
+#                 self.add_error(field, ValidationError(field_errors))
+
+#         # Vérifier que le mois et l'année sont présents et concaténer
+#         if mois and annee:
+#             date = f"{annee}/{mois.zfill(2)}"  # Ajouter un zéro devant si le mois est inférieur à 10
+#             cleaned_data['date'] = date
+#         return cleaned_data
+
+#     def save(self, commit=True):
+#         # Assurez-vous que 'date' est bien assignée avant de sauvegarder l'objet
+#         instance = super().save(commit=False)  # Crée l'instance sans l'enregistrer pour l'instant
+#         if 'date' in self.cleaned_data:
+#             instance.date = self.cleaned_data['date']  # Assignation explicite de la date
+#         if commit:
+#             instance.save()  # Enregistrement dans la base de données
+#         return instance
+    
+
+
+class FichierPaieForm(forms.ModelForm):
     class Meta:
         model = FichierPaie
         fields = ['mois', 'annee', 'type', 'description']
 
     mois = forms.ChoiceField(
-        choices=[(str(i), f"{i}: {calendar.month_name[i]}") for i in range(1, 13)],
+        choices=[(str(i), f"{i}: {MONTHS[i-1]}") for i in range(1, 13)],
         widget=forms.Select(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
     )
 
     annee = forms.CharField(
-
         widget=forms.TextInput(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
-    )
-
-    type = forms.ChoiceField(
-        choices=FichierPaie.TYPE_CHOICES,
-        initial='BADR',
-        widget=forms.Select(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
     )
 
     description = forms.CharField(
@@ -83,20 +183,43 @@ class FichierPaieForm(forms.ModelForm):
         max_length=1000,
         widget=forms.Textarea(attrs={'class': 'bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'})
     )
+
+    # Utilisation de l'init pour personnaliser les choix en fonction de la banque
+    def __init__(self, *args, bank=None, instance=None, **kwargs):
+        super(FichierPaieForm, self).__init__(*args, instance=instance, **kwargs)
+
+        # Priorité à la banque de l'instance (pour la modification)
+        if instance and instance.type in ['CPA', 'confraires_CPA']:
+            bank = "004"
+        elif instance and instance.type in ['BADR', 'confraires_BADR']:
+            bank = "003"
+
+        # Définir les choix en fonction de la banque
+        if bank == "003":
+            self.fields['type'].choices = [
+                ('BADR', 'BADR'),
+                ('confraires_BADR', 'confraires_BADR'),
+            ]
+        elif bank == "004":
+            self.fields['type'].choices = [
+                ('CPA', 'CPA'),
+                ('confraires_CPA', 'confraires_CPA'),
+            ]
+
     def clean(self):
         cleaned_data = super().clean()
         mois = cleaned_data.get('mois')
         annee = cleaned_data.get('annee')
         description = cleaned_data.get('description')
         errors = {}
-        
+
         if annee:
             if len(annee) != 4:
                 errors.setdefault('annee', []).append("L'année doit contenir 4 chiffres.")
             if not re.match(r'^\d{4}$', annee):
                 errors.setdefault('annee', []).append("Le format de l'année est invalide, inserez 4 chiffres seulement.")
             else:
-                if int(annee)<1950:
+                if int(annee) < 1950:
                     errors.setdefault('annee', []).append("L'année doit être supérieure à 1950.")
 
         if description:
@@ -105,27 +228,29 @@ class FichierPaieForm(forms.ModelForm):
             if not re.match(r'^[0-9a-zA-Z ]*$', description):
                 errors.setdefault('description', []).append("La description est invalide, elle doit contenir des lettres et des chiffres seulement.")
 
-
-        # Si des erreurs existent, les ajouter à chaque champ correspondant
         if errors:
             for field, field_errors in errors.items():
                 self.add_error(field, ValidationError(field_errors))
 
-        # Vérifier que le mois et l'année sont présents et concaténer
+        # Concaténation de la date
         if mois and annee:
-            date = f"{annee}/{mois.zfill(2)}"  # Ajouter un zéro devant si le mois est inférieur à 10
+            date = f"{annee}/{mois.zfill(2)}"
             cleaned_data['date'] = date
+
         return cleaned_data
 
     def save(self, commit=True):
-        # Assurez-vous que 'date' est bien assignée avant de sauvegarder l'objet
-        instance = super().save(commit=False)  # Crée l'instance sans l'enregistrer pour l'instant
+        instance = super().save(commit=False)
         if 'date' in self.cleaned_data:
-            instance.date = self.cleaned_data['date']  # Assignation explicite de la date
+            instance.date = self.cleaned_data['date']
         if commit:
-            instance.save()  # Enregistrement dans la base de données
+            instance.save()
         return instance
-    
+
+
+
+
+
 #     
 
 class FichePaieForm(forms.ModelForm):

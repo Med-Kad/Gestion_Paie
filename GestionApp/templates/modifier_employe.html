@@ -11,6 +11,7 @@
         <h1 class="text-center font-bold text-2xl text-white">Modifier l'employé</h1>
         <form method="post">
             {% csrf_token %}
+            <input type="hidden" id="previousUrl" name="previousUrl">
             <!-- Champ pour le RIB -->
             <div class="my-4">
                 <label for="Rib_Employe" class="text-white">RIB :</label>
@@ -63,4 +64,5 @@
         </form>
     </div>
 </div>
+<script src="{% static 'js/previous_url.js' %}"></script>
 {% endblock %}

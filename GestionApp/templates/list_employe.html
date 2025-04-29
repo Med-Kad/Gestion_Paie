@@ -40,7 +40,7 @@
     <div class="border-white border-4 border-opacity-50 rounded-md max-w-4xl mt-20 grow p-1 shadow-lg bg-zinc-700 relative">
         <div class="absolute top-2 right-2 mt-1">
             <!-- Bouton Ajouter un employé -->
-            <a href="{% url 'Add_Employe' %}" class=" bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+            <a href="{% url 'Add_Employe' %}"  class=" bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
                 Ajouter un employé
             </a>
         </div>
@@ -74,12 +74,14 @@
                     <td class="border px-4 py-2">{{ employe.Address }}</td>
                     <td class="border px-4 py-2 flex justify-center gap-2">
                         <!-- Bouton Modifier -->
-                        <a href="{% url 'modifier_employe' employe.Rib_Employe %}" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-4 rounded">
+                        <a href="{% url 'modifier_employe' employe.Rib_Employe %}" onclick="SavePreviousUrl()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-4 rounded">
                             Modifier
                         </a>
+                        
                         <!-- Bouton Supprimer -->
-                        <form action="{% url 'supprimer_employe' employe.Rib_Employe %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet employé ?');">
+                        <form action="{% url 'supprimer_employe' employe.Rib_Employe %}"  method="post" onsubmit="return handleDelete('{{ employe.Rib_Employe }}', event);">
                             {% csrf_token %}
+                            <input type="hidden" id="previousUrl-{{ employe.Rib_Employe }}" name="previousUrl">
                             <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded">
                                 Supprimer
                             </button>
@@ -99,17 +101,17 @@
             <span class="text-white ">Page {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
             <div class="pagination flex gap-2 ml-4">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="text-white px-2 border rounded-xl">Début</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="text-white px-2 border rounded-xl">Précédent</a>
+                    <a href="?page=1&rib={{ rib_query }}&fullname={{ fullname_query }}&address={{ address_query }}" class="text-white px-2 border rounded-xl">Début</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&rib={{ rib_query }}&fullname={{ fullname_query }}&address={{ address_query }}" class="text-white px-2 border rounded-xl">Précédent</a>
                 {% endif %}
-
+        
                 {% for page in page_obj.paginator.page_range %}
-                    <a href="?page={{ page }}" class="{% if page == page_obj.number %}font-bold{% endif %} px-2 py-1 text-white border rounded-xl">{{ page }}</a>
+                    <a href="?page={{ page }}&rib={{ rib_query }}&fullname={{ fullname_query }}&address={{ address_query }}" class="{% if page == page_obj.number %}font-bold{% endif %} px-2 py-1 text-white border rounded-xl">{{ page }}</a>
                 {% endfor %}
-
+        
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="text-white px-2 border rounded-xl">Suivant</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="text-white px-2 border rounded-xl">Fin</a>
+                    <a href="?page={{ page_obj.next_page_number }}&rib={{ rib_query }}&fullname={{ fullname_query }}&address={{ address_query }}" class="text-white px-2 border rounded-xl">Suivant</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&rib={{ rib_query }}&fullname={{ fullname_query }}&address={{ address_query }}" class="text-white px-2 border rounded-xl">Fin</a>
                 {% endif %}
             </div>
         </div>
@@ -117,4 +119,5 @@
 </div>
 <script src="{% static 'js/filter.js' %}"></script>
 <script src="{% static 'js/alertmanagement.js' %}"></script>
+<script src="{% static 'js/previous_url.js' %}"></script>
 {% endblock %}

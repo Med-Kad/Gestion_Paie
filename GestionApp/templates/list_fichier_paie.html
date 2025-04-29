@@ -68,7 +68,9 @@
             <select id="typeInput" name="type" class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
                 <option value="" {% if type_query == "" %}selected{% endif %}>Tous les types</option>
                 <option value="BADR" {% if type_query == "BADR" %}selected{% endif %}>BADR</option>
-                <option value="confraires" {% if type_query == "confraires" %}selected{% endif %}>confraires</option>
+                <option value="confraires_BADR" {% if type_query == "confraires_BADR" %}selected{% endif %}>confraires_BADR</option>
+                <option value="CPA" {% if type_query == "CPA" %}selected{% endif %}>CPA</option>
+                <option value="confraires_CPA" {% if type_query == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option>
             </select>
         </div>
 
@@ -129,7 +131,9 @@
                             <!-- <input type="text" id="type" name="type" placeholder="Inserez le type du fichier" required class="w-full p-2 border rounded"> -->
                             <select id="type" name="type" placeholder="Inserez le type du fichier" required class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="BADR" {% if formpopup.type.value == "BADR" %}selected{% endif %}>BADR</option>
-                                <option value="confraires" {% if formpopup.type.value == "confraires" %}selected{% endif %}>confraires</option>
+                                <option value="confraires_BADR" {% if formpopup.type.value == "confraires_BADR" %}selected{% endif %}>confraires_BADR</option>
+                                <option value="CPA" {% if formpopup.type.value == "CPA" %}selected{% endif %}>CPA</option>
+                                <option value="confraires_CPA" {% if formpopup.type.value == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option>
                             </select>
                         </div>
                         <!-- Description -->
@@ -174,11 +178,12 @@
                                 Télécharger
                             </button>
                         
-                        <a href="{% url 'modifier_fichier_paie' fichier.id %}" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">
+                        <a href="{% url 'modifier_fichier_paie' fichier.id %}" onclick="SavePreviousUrl()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">
                             Modifier
                         </a>
-                        <form action="{% url 'delete_fichier' fichier.id %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">
+                        <form action="{% url 'delete_fichier' fichier.id %}" method="post" onsubmit="return handleDelete('{{ fichier.id }}', event);">
                             {% csrf_token %}
+                            <input type="hidden" id="previousUrl-{{ fichier.id }}" name="previousUrl">
                             <button type="submit" class="bg-red-700 hover:bg-red-600 text-white font-bold py-1 px-3 rounded">
                                 Supprimer
                             </button>
@@ -201,17 +206,17 @@
             <span class="text-white">Page {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
             <div class="pagination flex gap-2 ml-4">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="text-white px-2 border rounded-xl">Début</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="text-white px-2 border rounded-xl">Précédent</a>
+                    <a href="?page=1&date={{ date_query }}&description={{ description_query }}&type={{ type_query }}" class="text-white px-2 border rounded-xl">Début</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&date={{ date_query }}&description={{ description_query }}&type={{ type_query }}" class="text-white px-2 border rounded-xl">Précédent</a>
                 {% endif %}
 
                 {% for page in page_obj.paginator.page_range %}
-                    <a href="?page={{ page }}" class="{% if page == page_obj.number %}font-bold{% endif %} px-2 py-1 text-white border rounded-xl">{{ page }}</a>
+                    <a href="?page={{ page }}&date={{ date_query }}&description={{ description_query }}&type={{ type_query }}" class="{% if page == page_obj.number %}font-bold{% endif %} px-2 py-1 text-white border rounded-xl">{{ page }}</a>
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="text-white px-2 border rounded-xl">Suivant</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="text-white px-2 border rounded-xl">Fin</a>
+                    <a href="?page={{ page_obj.next_page_number }}&date={{ date_query }}&description={{ description_query }}&type={{ type_query }}" class="text-white px-2 border rounded-xl">Suivant</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&date={{ date_query }}&description={{ description_query }}&type={{ type_query }}" class="text-white px-2 border rounded-xl">Fin</a>
                 {% endif %}
             </div>
         </div>
@@ -221,6 +226,7 @@
 <script src="{% static 'js/filterfichier.js' %}"></script>
 <script src="{% static 'js/alertmanagement.js' %}"></script>
 <script src="{% static 'js/popup.js' %}"></script>
+<script src="{% static 'js/previous_url.js' %}"></script>
 
 
 {% endblock %}

@@ -9,7 +9,7 @@
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-
+            <input type="hidden" id="previousUrl" name="previousUrl">
             <!-- Champ Employé -->
             <div class="mb-4">
                 <label for="employe" class="block text-white font-bold mb-2">Employé</label>
@@ -113,5 +113,6 @@
     
     <script src="{% static 'js/selectscript_modifierfiche.js' %}"></script>
     <script src="{% static 'js/alertmanagement.js' %}"></script>
+    <script src="{% static 'js/previous_url.js' %}"></script>
 
 {% endblock %}
