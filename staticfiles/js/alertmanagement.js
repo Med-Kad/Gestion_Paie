@@ -11,6 +11,13 @@ function confirmDownload(fichierId) {
     }
 }
 
+function confirmPrint(fichierId) {
+    if (confirm("Voulez-vous vraiment télécharger ce fichier ?")) {
+        window.location.href = `fichier/pdf/${fichierId}/`;
+    }
+
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const notification = document.querySelector('[role="alert"]');
 

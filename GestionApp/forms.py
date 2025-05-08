@@ -189,7 +189,7 @@ class FichierPaieForm(forms.ModelForm):
         super(FichierPaieForm, self).__init__(*args, instance=instance, **kwargs)
 
         # Priorité à la banque de l'instance (pour la modification)
-        if instance and instance.type in ['CPA', 'confraires_CPA']:
+        if instance and instance.type in ['CPA']:
             bank = "004"
         elif instance and instance.type in ['BADR', 'confraires_BADR']:
             bank = "003"
@@ -203,7 +203,6 @@ class FichierPaieForm(forms.ModelForm):
         elif bank == "004":
             self.fields['type'].choices = [
                 ('CPA', 'CPA'),
-                ('confraires_CPA', 'confraires_CPA'),
             ]
 
     def clean(self):

@@ -70,7 +70,7 @@
                 <option value="BADR" {% if type_query == "BADR" %}selected{% endif %}>BADR</option>
                 <option value="confraires_BADR" {% if type_query == "confraires_BADR" %}selected{% endif %}>confraires_BADR</option>
                 <option value="CPA" {% if type_query == "CPA" %}selected{% endif %}>CPA</option>
-                <option value="confraires_CPA" {% if type_query == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option>
+                <!-- <option value="confraires_CPA" {% if type_query == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option> -->
             </select>
         </div>
 
@@ -133,7 +133,7 @@
                                 <option value="BADR" {% if formpopup.type.value == "BADR" %}selected{% endif %}>BADR</option>
                                 <option value="confraires_BADR" {% if formpopup.type.value == "confraires_BADR" %}selected{% endif %}>confraires_BADR</option>
                                 <option value="CPA" {% if formpopup.type.value == "CPA" %}selected{% endif %}>CPA</option>
-                                <option value="confraires_CPA" {% if formpopup.type.value == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option>
+                                <!-- <option value="confraires_CPA" {% if formpopup.type.value == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option> -->
                             </select>
                         </div>
                         <!-- Description -->
@@ -174,9 +174,17 @@
                             </button>
 
                         <!-- Boutons Modifier et Supprimer -->
-                            <button onclick="confirmDownload('{{ fichier.id }}')" class="bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 rounded">
+                        <div class="flex flex-col gap-1 items-center w-[9rem]"> <!-- largeur fixe du conteneur -->
+                            <!-- Bouton Télécharger -->
+                            <button onclick="confirmDownload('{{ fichier.id }}')" class="bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 mb-2 rounded w-full">
                                 Télécharger
                             </button>
+                            <!-- Bouton Imprimer -->
+                            <button onclick="confirmPrint('{{ fichier.id }}')" class="bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 rounded w-full">
+                                Imprimer
+                            </button>
+                        </div>
+                        
                         
                         <a href="{% url 'modifier_fichier_paie' fichier.id %}" onclick="SavePreviousUrl()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">
                             Modifier

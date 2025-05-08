@@ -48,7 +48,6 @@ class FichierPaie(models.Model):
         ('confraires_BADR', 'confraires_BADR'),
         ('BADR', 'BADR'),
         ('CPA', 'CPA'),
-        ('confraires_CPA', 'confraires_CPA'),
 
     ]
     date = models.CharField(max_length=7, validators=[RegexValidator(r'^\d{4}/\d{2}$')])

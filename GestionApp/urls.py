@@ -23,5 +23,6 @@ path('telecharger/<int:fichier_id>/', telecharger_fichier_paie, name='telecharge
 path("formulaire/", formulaire_utilisateur, name="enregistrer_utilisateur"),
 path('importer-fichier-txt/', importer_fichier_txt, name='importer_fichier_txt'),
 path('clone_fichier_paie/', clone_fichier_paie, name='clone_fichier_paie'),
+path('fichier/pdf/<int:id>/', download_etats, name='download_etats'),
 
 ]

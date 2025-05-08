@@ -5,9 +5,24 @@ from django.contrib import messages  # Importer le module messages
 from .models import *
 from django.core.paginator import Paginator
 from django.core import serializers
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 import json
 import datetime
 import re
+
+months_str = {   '01': 'Janvier',
+                 '02': 'Février',
+                 '03': 'Mars',
+                 '04': 'Avril',
+                 '05': 'Mai',
+                 '06': 'Juin',
+                 '07': 'Juillet',
+                 '08': 'Août',
+                 '09': 'Septembre',
+                 '10': 'Octobre',
+                 '11': 'Novembre',
+                 '12': 'Décembre'}
 
 # Fichier pour stocker les données utilisateur
 fichier_utilisateur = "utilisateur.json"
@@ -264,15 +279,15 @@ def ajouter_fiche_paie(request):
                 if banque == "003":
                     messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la BADR.")    
                     return render(request, 'ajouter_fiche.html', {'form': form})
-            elif type_fichier == "CPA":
-                if banque != "004":
-                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA.")
-                    return render(request, 'ajouter_fiche.html', {'form': form})
-            elif type_fichier == "confraires_CPA":
-                print("confraires_CPA")
-                if banque == "004":
-                    messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA.")
-                    return render(request, 'ajouter_fiche.html', {'form': form})
+            # elif type_fichier == "CPA":
+            #     if banque != "004":
+            #         messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA.")
+            #         return render(request, 'ajouter_fiche.html', {'form': form})
+            # elif type_fichier == "confraires_CPA":
+            #     print("confraires_CPA")
+            #     if banque == "004":
+            #         messages.error(request, f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA.")
+            #         return render(request, 'ajouter_fiche.html', {'form': form})
 
 
             if not fiche: 
@@ -387,16 +402,19 @@ def list_fiches(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+
     context = {
         'page_obj': page_obj,
-        'employe_query': employe_name_query,
+        'employe_name_query': employe_name_query,
         'employe_rib_query': employe_rib_query,
         'montant_query': montant_query,
         'libelle_query': libelle_query,
-        'fichier_description_query': fichier_description_query,
-        'fichier_date_query': fichier_date_query,
-        'fichier_type_query': fichier_type_query,
+        'description_query': fichier_description_query,
+        'date_query': fichier_date_query,
+        'type_query': fichier_type_query,
     }
+
+    # print("context",context)
 
     return render(request, 'list_fiches.html', context)
 
@@ -412,8 +430,23 @@ def telecharger_fichier_paie(request, fichier_id):
 
     if fichier.type=="BADR" or fichier.type=="confraires_BADR": 
         return telecharger_fichier_paie_BADR(request, fichier_id)
-    elif fichier.type=="CPA" or fichier.type=="confraires_CPA":
+    elif fichier.type=="CPA":
         return telecharger_fichier_paie_CPA(request, fichier_id)
+
+
+def download_etats(request, id):
+
+    # Récupérer le fichier de paie associé
+    fichier = FichierPaie.objects.get(id=id)
+
+    # Vérifier si le fichier est valide
+    validite_fichier, message = Valider_fichier(fichier.id)
+    if not validite_fichier:
+        messages.error(request, message)
+        return redirect('list_fiches')
+
+    # Générer le PDF
+    return download_pdf(request, id)
     
  ############################################################
     
@@ -438,16 +471,16 @@ def Valider_fichier(fichier_id):
                 validite_fichier = False
                 notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la BADR. \n"
                 continue
-        elif type_fichier == "CPA":
-            if banque != "004":
-                validite_fichier = False
-                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA. \n"
-                continue
-        elif type_fichier == "confraires_CPA":
-            if banque == "004":
-                validite_fichier = False
-                notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA. \n"
-                continue
+        # elif type_fichier == "CPA":
+        #     if banque != "004":
+        #         validite_fichier = False
+        #         notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque n'est pas la CPA. \n"
+        #         continue
+        # elif type_fichier == "confraires_CPA":
+        #     if banque == "004":
+        #         validite_fichier = False
+        #         notice+=f"L'employé : \" {employe} \" ne peut pas appartenir à ce fichier de paie car sa banque est la CPA. \n"
+        #         continue
         
     if notice != "":
         message = "Le fichier de paie n'est pas valide. \n" +" \n"+ notice
@@ -578,6 +611,77 @@ def telecharger_fichier_paie_BADR(request, fichier_id):
 
 
 
+def download_pdf(request,id):
+    fichier= FichierPaie.objects.get(id=id)
+    fiches = FichePaie.objects.filter(fiche_paie=id)
+    template_path = 'etats_pdf.html'
+    i=1
+    lignes = []
+    mois=fichier.date.split('/')[1]
+    annee=fichier.date.split('/')[0]
+    mois=months_str[mois]
+
+    try:
+        with open(fichier_utilisateur, "r") as fichier:
+            data = json.load(fichier)
+    except FileNotFoundError:
+        data = {}
+
+    try:
+        # Récupérer la fiche de paie correspondante
+        Rib_User = data.get("rib", "")
+        Fullname_User = data.get("fullname", "")
+        Address_User = data.get("address", "")
+        Bank_User = data.get("bank", "")
+    except FichePaie.DoesNotExist:
+        return HttpResponse("Fiche de paie introuvable.", status=404)
+
+
+    for fiche in fiches:
+        employe= fiche.employe.Fullname
+        rib= fiche.employe.Rib_Employe
+        montant= fiche.Montant
+        # diviser le montant sur deux parties jusqua le deux derniers chiffres
+        newmontant = montant[:-2] + ',' + montant[-2:]
+        
+
+        
+
+
+
+        ligne = {
+            'numero': i,
+            'employe': employe,
+            'rib': rib,
+            'montant': newmontant,
+            
+        }
+    
+        i+=1
+        lignes.append(ligne)
+
+
+    
+    context = {'lignes': lignes, 'mois': mois, 'annee': annee,'Fullname_User': Fullname_User,}
+
+    #Charger le template HTML
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # Créer la réponse PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="etats_{mois}_{annee}.pdf"'
+
+    # Générer le PDF
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('Une erreur s\'est produite lors de la génération du PDF')
+    return response
+
+
+
+
 ###################################################   User   ########################################################
 
 # Vue pour afficher le formulaire
@@ -649,7 +753,7 @@ def importer_fichier_txt(request):
         for ligne in lignes:
             invalid=False
             i+=1
-            if len(ligne) == 220:
+            if i==1 and len(ligne) == 220:
                 debut = ligne[0:4]
                 if debut != "VIRM":
                     notice+="La premiere ligne n'est pas valide.\n"
@@ -678,6 +782,11 @@ def importer_fichier_txt(request):
                     notice+="La banque du donneur d'ordre n'est pas valide.\n"
                     break              
                 continue
+            elif i==1 and len(ligne) != 220:
+                notice+="La premiere ligne n'est pas valide, elle doit contenir 220 caracteres\n"
+                continue
+
+
             if len(ligne) == 100:
                 break
             
@@ -690,10 +799,10 @@ def importer_fichier_txt(request):
                     else:
                         typeFichier = "confraires_BADR"
                 elif banquePayeur=="004":
-                    if banque == "004":
-                        typeFichier = "CPA"
-                    else:
-                        typeFichier = "confraires_CPA"
+                    # if banque == "004":
+                    typeFichier = "CPA"
+                    # else:
+                    #     typeFichier = "confraires_CPA"
                 else:
                     notice+="La banque du donneur d'ordre n'est pas valide. Veuillez inserer un fichier avec un compte donneur d'ordre appartenant a la BADR ou la CPA.\n"
                     break
@@ -727,6 +836,11 @@ def importer_fichier_txt(request):
             address = ligne[85:155].strip()
             montant = ligne[155:170].lstrip('0')
             libelle = ligne[170:240].strip()
+            mois = ligne[6:8]
+            annee = ligne[8:10]
+            
+            
+
             if typeFichier =="BADR":
                 if banque != "003":
                     notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" confraires_BADR \" \n"
@@ -737,21 +851,28 @@ def importer_fichier_txt(request):
                     notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" BADR \" \n"
                     invalid = True
                     continue
-            elif typeFichier=="CPA":
-                if banque != "004":
-                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" confraires_CPA \" \n"
-                    invalid = True
-                    continue
-            elif typeFichier=="confraires_CPA":
-                if banque == "004":
-                    notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" CPA \" \n"
-                    invalid = True
-                    continue
+            # elif typeFichier=="CPA":
+            #     if banque != "004":
+            #         notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" confraires_CPA \" \n"
+            #         invalid = True
+            #         continue
+            # elif typeFichier=="confraires_CPA":
+            #     if banque == "004":
+            #         notice += f"La banque de l'employé {fullname} de la ligne numero {i} du fichier, n'est pas valide. cet employé doit etre situé dans le type \" CPA \" \n"
+            #         invalid = True
+            #         continue
 
             # if typeFichier != TypeBanqueNVligne:
             #     notice += f"Type de fichier invalide. L'employé {fullname} a la ligne: {i} du fichier,n'appartient pas a ce type de fichier.\n"
             #     invalid = True
             #     break
+
+            if mois not in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+                invalid=True
+                notice+=f"Le mois {mois} "
+            if not annee.isdigit():
+                invalid=True
+                notice+=f"L'année {annee} "
 
             if not rib.isdigit() or len(rib) != 20:
                 invalid=True

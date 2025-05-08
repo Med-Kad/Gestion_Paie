@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: "DejaVu Sans"; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid black; padding: 6px; text-align: left; word-wrap: break-word; }
+        th { background-color: #f2f2f2; }
+        th.numero-col, td.numero-col { width: 10%; }
+        th.nom-col, td.nom-col { width: 35%; }
+        th.compte-col, td.compte-col { width: 35%; }
+        th.montant-col, td.montant-col { width: 20%; }
+    </style>
+    
+</head>
+<body>
+    <h2 style="display: flex; justify-content: space-between;">
+        <span>Etats de {{mois}} {{annee}}</span>
+        <span>{{ Fullname_User }}</span>
+    </h2>
+    <table>
+        <thead>
+            <tr>
+                <th class="numero-col">Numero</th>
+                <th class="nom-col">Nom complet</th>
+                <th class="compte-col">Numero de compte</th>
+                <th class="montant-col">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in lignes %}
+            <tr>
+                <td class="numero-col">{{ ligne.numero }}</td>
+                <td class="nom-col">{{ ligne.employe }}</td>
+                <td class="compte-col">{{ ligne.rib }}</td>
+                <td class="montant-col">{{ ligne.montant }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

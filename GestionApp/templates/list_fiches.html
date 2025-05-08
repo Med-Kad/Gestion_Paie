@@ -52,7 +52,7 @@
             class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
             </div>
             <div class="flex justify-center gap-2">
-            <input type="text" id="dateInput" name="fiche" placeholder="Rechercher par date" value="{{ date_query }}"
+            <input type="text" id="dateInput" name="fiche" placeholder="Rechercher par date (AAAA/MM)" value="{{ date_query }}"
                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
             <input type="text" id="descriptionInput" name="fiche" placeholder="Rechercher par description" value="{{ description_query }}"
                    class="bg-gray-300 text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
@@ -61,7 +61,7 @@
                     <option value="BADR" {% if type_query == "BADR" %}selected{% endif %}>BADR</option>
                     <option value="confraires_BADR" {% if type_query == "confraires_BADR" %}selected{% endif %}>confraires_BADR</option>
                     <option value="CPA" {% if type_query == "CPA" %}selected{% endif %}>CPA</option>
-                    <option value="confraires_CPA" {% if type_query == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option>
+                    <!-- <option value="confraires_CPA" {% if type_query == "confraires_CPA" %}selected{% endif %}>confraires_CPA</option> -->
                     
                 </select>
                 </div>
@@ -129,7 +129,7 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}&employe_name={{employe_name_query}}&employe_rib={{employe_rib_query}}&montant={{montant_query}}&libelle={{libelle_query}}&date={{date_query}}&type={{type_query}}&description={{description_query}}" class="text-white px-2 border rounded-xl">Suivant</a>
+                    <a href="?page={{ page_obj.next_page_number }}&employe_name={{employe_name_query}}&employe_rib={{employe_rib_query}}&date={{date_query}}&description={{description_query}}&type={{type_query}}&montant={{montant_query}}&libelle={{libelle_query}}" class="text-white px-2 border rounded-xl">Suivant</a>
                     <a href="?page={{ page_obj.paginator.num_pages }}&employe_name={{employe_name_query}}&employe_rib={{employe_rib_query}}&montant={{montant_query}}&libelle={{libelle_query}}&date={{date_query}}&type={{type_query}}&description={{description_query}}" class="text-white px-2 border rounded-xl">Fin</a>
                 {% endif %}
             </div>
