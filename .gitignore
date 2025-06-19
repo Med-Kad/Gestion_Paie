@@ -1,4 +1,21 @@
-node_modules/
-.env
+# Gestion Paie - .gitignore
+# Python
+*.pyc
+__pycache__/
+TaysirEnv/
 
+# Django
+
+*.log
+*.pot
+media/
+staticfiles/
+
+# Node/React
+node_modules/
+build/
+dist/
+
+# Environment variables
+.env
 

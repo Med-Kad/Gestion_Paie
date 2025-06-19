@@ -617,9 +617,11 @@ def download_pdf(request,id):
     template_path = 'etats_pdf.html'
     i=1
     lignes = []
+    type_fichier = fichier.type
     mois=fichier.date.split('/')[1]
     annee=fichier.date.split('/')[0]
     mois=months_str[mois]
+    montant_total=0
 
     try:
         with open(fichier_utilisateur, "r") as fichier:
@@ -641,6 +643,7 @@ def download_pdf(request,id):
         employe= fiche.employe.Fullname
         rib= fiche.employe.Rib_Employe
         montant= fiche.Montant
+        montant_total=montant_total+int(montant)
         # diviser le montant sur deux parties jusqua le deux derniers chiffres
         newmontant = montant[:-2] + ',' + montant[-2:]
         
@@ -659,10 +662,12 @@ def download_pdf(request,id):
     
         i+=1
         lignes.append(ligne)
+    # Ajouter la ligne de total
+    newmontanttotal = str(montant_total)[:-2] + ',' + str(montant_total)[-2:]
 
 
     
-    context = {'lignes': lignes, 'mois': mois, 'annee': annee,'Fullname_User': Fullname_User,}
+    context = {'lignes': lignes, 'mois': mois, 'annee': annee,'Fullname_User': Fullname_User,'MontantTotal':newmontanttotal}
 
     #Charger le template HTML
     template = get_template(template_path)
@@ -670,7 +675,7 @@ def download_pdf(request,id):
 
     # Créer la réponse PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="etats_{mois}_{annee}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="etats_{mois}_{annee}_{type_fichier}.pdf"'
 
     # Générer le PDF
     pisa_status = pisa.CreatePDF(html, dest=response)
@@ -769,6 +774,7 @@ def importer_fichier_txt(request):
 
                 # si annee nest pas un nombre qui contient 4 chiffres ou plus grand que 1950
                 if not annee.isdigit() or len(annee) != 4 or int(annee) < 1950:
+                    print("annee",annee)
                     notice+="L'année de la premiere ligne n'est pas valide.\n"
                     break
 
