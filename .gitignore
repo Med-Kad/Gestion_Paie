@@ -4,6 +4,14 @@
 __pycache__/
 TaysirEnv/
 
+GestionApp/__pycache__/
+GestionApp/migrations/__pycache__/
+Gestion_Paie/__pycache__/
+
+GestionApp/static/styles/output.css
+GestionApp/static/styles/tailwind.css
+
+
 # Django
 
 *.log
