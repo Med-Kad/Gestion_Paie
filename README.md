@@ -6,7 +6,7 @@ Application de gestion de la paie développée avec Django, MongoDB et Tailwind 
 
 ## ⚙️ Prérequis
 
-- Python 3.9+
+- Python 3.11
 - Node.js & npm (pour Tailwind CSS)
 - MongoDB (local ou en ligne, ex : MongoDB Atlas)
 - pip ou pipenv
